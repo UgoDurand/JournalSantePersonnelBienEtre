@@ -1,6 +1,10 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="min-h-screen bg-gray-100 py-12 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <img alt="Vue logo" src="./assets/logo.png" class="w-24 h-24 mx-auto mb-8">
+      <HelloWorld msg="Welcome to Your Vue.js App"/>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -15,12 +19,5 @@ export default {
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+/* Tailwind CSS styles are now handled via the @import in main.js */
 </style>
