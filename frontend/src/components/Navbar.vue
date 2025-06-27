@@ -17,10 +17,19 @@
 
       <!-- Navigation -->
       <nav class="flex flex-col gap-2">
+        <!-- Lundi avec pastilles -->
         <button class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-900 font-medium">
           <CalendarIcon class="w-5 h-5 text-gray-500" />
           Mon
+          <div class="flex items-center gap-1 ml-auto">
+            <BadgeIcon color="bg-blue-500" />
+            <BadgeIcon color="bg-green-500" />
+            <BadgeIcon color="bg-orange-500" />
+            <BadgeIcon color="bg-red-500" />
+          </div>
         </button>
+
+        <!-- Les autres jours -->
         <button class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100">
           <CalendarIcon class="w-5 h-5 text-gray-400" />
           Tue
@@ -64,13 +73,15 @@
 
 <script>
 import { CalendarIcon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/vue/24/outline'
+import BadgeIcon from '@/components/Badge.vue'
 
 export default {
   name: 'NavbarMenu',
   components: {
     CalendarIcon,
     Cog6ToothIcon,
-    ArrowRightEndOnRectangleIcon
+    ArrowRightEndOnRectangleIcon,
+    BadgeIcon
   }
 }
 </script>
