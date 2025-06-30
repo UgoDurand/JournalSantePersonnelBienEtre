@@ -22,14 +22,14 @@
                  text-gray-900 font-bold border border-gray-200"
             :class="collapsed ? 'md:hidden' : ''"
         >
-          W
+          U
         </div>
         <!-- Nom : visible toujours sur mobile, et sur desktop quand non-collapsed -->
         <span
             class="text-xl font-semibold text-gray-800"
             :class="collapsed ? 'block md:hidden' : 'block'"
         >
-          Ugo
+          User
         </span>
       </div>
 
