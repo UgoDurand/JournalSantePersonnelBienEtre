@@ -1,20 +1,18 @@
-<!-- src/components/Navbar.vue -->
 <template>
   <aside
       :class="[
-      // mobile collapsed → fixed en haut ; sinon static (desktop ou non-collapsed)
-      collapsed
-        ? 'fixed top-0 left-0 right-0 md:static'
-        : 'static',
+      /* mobile: sticky en haut -> reste visible ; desktop: static */
+      'sticky top-0 md:static',
       'bg-white shadow-sm transition-width duration-200 border-b md:border-b-0 md:border-r border-gray-200',
-      'z-50 md:z-auto',  /* s’assurer que la navbar fixe soit au-dessus */
-      // largeur / orientation selon collapsed ou non
+      'z-50 md:z-auto',
+
+      /* largeur / orientation selon état collapsed */
       collapsed
         ? 'w-full h-16 flex flex-row items-center justify-between px-4 md:w-16 md:h-screen md:flex-col md:px-2 md:py-4'
         : 'w-full md:w-56 lg:w-64 xl:w-72 h-auto md:h-screen flex flex-col px-2 py-4'
     ]"
   >
-    <!-- HEADER : logo + nom + toggle -->
+    <!-- HEADER -->
     <div
         :class="[
         'flex items-center w-full',
@@ -22,14 +20,14 @@
       ]"
     >
       <div class="flex items-center space-x-2">
-        <!-- Logo : caché en collapsed ≥md, visible sinon -->
+        <!-- Logo -->
         <div
             class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-900 font-bold border border-gray-200"
             :class="collapsed ? 'md:hidden' : ''"
         >
           U
         </div>
-        <!-- Nom : visible toujours en mobile, et en desktop si non-collapsed -->
+        <!-- Nom -->
         <span
             class="text-xl font-semibold text-gray-800"
             :class="collapsed ? 'block md:hidden' : 'block'"
@@ -44,13 +42,13 @@
       />
     </div>
 
-    <!-- INFO SEMAINE (cachée si collapsed) -->
+    <!-- INFO SEMAINE -->
     <div v-if="!collapsed" class="mb-6">
       <p class="text-xs text-gray-400">Week of Oct 21</p>
       <p class="text-sm text-gray-600">2024</p>
     </div>
 
-    <!-- NAV JOURS -->
+    <!-- NAV -->
     <nav
         :class="[
         collapsed ? 'hidden md:flex md:mt-4 flex-col' : 'flex flex-col',
@@ -76,7 +74,7 @@
       </router-link>
     </nav>
 
-    <!-- FOOTER ACTIONS -->
+    <!-- FOOTER -->
     <div
         :class="collapsed
         ? 'hidden md:flex flex-col gap-2 mt-auto'
