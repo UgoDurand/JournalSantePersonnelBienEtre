@@ -1,12 +1,9 @@
+<!-- src/views/HomePage.vue -->
 <template>
-  <div class="flex">
-    <Navbar />
-
-    <main class="flex-1 bg-gray-50 p-8">
-      <!-- En-tête avec juste le titre -->
+  <div class="flex flex-wrap">
+    <Navbar class="w-full md:w-auto" />
+    <main class="flex-1 min-w-0 bg-gray-50 p-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-8">Today</h1>
-
-      <!-- Grille 2×2, cartes plein largeur de colonne -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <DashboardCard
             title="Sleep"
