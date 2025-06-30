@@ -29,8 +29,7 @@
           value="30 min"
           label="Exercise duration"
           image="/img/sport.png"
-          @add="onAdd"
-          @view="onView"
+          :to="{ name: 'Activity' }"
       />
       <DashboardCard
           class="w-full"
