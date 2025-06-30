@@ -1,4 +1,3 @@
-<!-- src/views/HomePage.vue -->
 <template>
   <div class="bg-gray-50 min-h-screen p-4 sm:p-8 min-w-0">
     <h1 class="text-3xl font-bold text-gray-900 mb-4 sm:mb-8">Today</h1>
@@ -38,8 +37,8 @@
           value="Happy"
           label="Overall mood"
           image="/img/happy.png"
-          @add="onAdd"
-          @view="onView"
+          @add="$router.push({ name: 'Mood' })"
+          :show-view="false"
       />
     </div>
   </div>
@@ -52,8 +51,12 @@ export default {
   name: 'HomePage',
   components: { DashboardCard },
   methods: {
-    onAdd(section) { console.log('Add data to', section) },
-    onView(section) { console.log('View details of', section) }
+    onAdd(section) {
+      console.log('Add data to', section)
+    },
+    onView(section) {
+      console.log('View details of', section)
+    }
   }
 }
 </script>
