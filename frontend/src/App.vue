@@ -1,10 +1,7 @@
-<!-- src/App.vue -->
 <template>
-  <!-- Sur mobile / zoom fort : colonne (navbar en haut), sur md+ : ligne (navbar à gauche) -->
-  <div class="flex flex-col md:flex-row min-h-screen">
+  <div class="flex flex-col md:flex-row h-screen overflow-hidden">
     <Navbar />
-    <!-- Le main doit pouvoir défiler indépendamment -->
-    <main class="flex-1 overflow-auto min-w-0">
+    <main class="flex-1 overflow-auto">
       <router-view />
     </main>
   </div>
@@ -12,5 +9,9 @@
 
 <script>
 import Navbar from '@/components/Navbar.vue'
-export default { components: { Navbar } }
+
+export default {
+  name: 'App',
+  components: { Navbar }
+}
 </script>
