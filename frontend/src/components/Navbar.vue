@@ -2,7 +2,13 @@
 <template>
   <aside
       :class="[
-      'bg-white shadow-sm z-10 transition-width duration-200 border-b md:border-b-0 md:border-r border-gray-200',
+      // mobile collapsed → fixed en haut ; sinon static (desktop ou non-collapsed)
+      collapsed
+        ? 'fixed top-0 left-0 right-0 md:static'
+        : 'static',
+      'bg-white shadow-sm transition-width duration-200 border-b md:border-b-0 md:border-r border-gray-200',
+      'z-50 md:z-auto',  /* s’assurer que la navbar fixe soit au-dessus */
+      // largeur / orientation selon collapsed ou non
       collapsed
         ? 'w-full h-16 flex flex-row items-center justify-between px-4 md:w-16 md:h-screen md:flex-col md:px-2 md:py-4'
         : 'w-full md:w-56 lg:w-64 xl:w-72 h-auto md:h-screen flex flex-col px-2 py-4'
@@ -12,19 +18,18 @@
     <div
         :class="[
         'flex items-center w-full',
-        collapsed ? 'justify-between md:justify-center' : 'justify-between mb-6'
+        collapsed ? 'justify-between md:justify-center h-16' : 'justify-between mb-6'
       ]"
     >
       <div class="flex items-center space-x-2">
-        <!-- Logo : caché en collapsed ≥md, visible autrement -->
+        <!-- Logo : caché en collapsed ≥md, visible sinon -->
         <div
-            class="w-8 h-8 bg-white rounded-full flex items-center justify-center
-                 text-gray-900 font-bold border border-gray-200"
+            class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-900 font-bold border border-gray-200"
             :class="collapsed ? 'md:hidden' : ''"
         >
           U
         </div>
-        <!-- Nom : visible toujours sur mobile, et sur desktop quand non-collapsed -->
+        <!-- Nom : visible toujours en mobile, et en desktop si non-collapsed -->
         <span
             class="text-xl font-semibold text-gray-800"
             :class="collapsed ? 'block md:hidden' : 'block'"
@@ -57,9 +62,7 @@
           :key="day.key"
           :to="day.path"
           exact
-          class="flex items-center gap-2 px-3 py-2 rounded-lg
-               text-gray-600 transition-colors duration-150
-               hover:bg-gray-100 hover:text-gray-800"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-800"
           active-class="bg-gray-200 text-gray-900 font-medium"
       >
         <CalendarIcon class="w-5 h-5" />
@@ -79,15 +82,11 @@
         ? 'hidden md:flex flex-col gap-2 mt-auto'
         : 'mt-auto flex flex-col gap-2'"
     >
-      <button
-          class="flex items-center justify-start gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
-      >
+      <button class="flex items-center justify-start gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
         <Cog6ToothIcon class="w-5 h-5 text-gray-400" />
         <span v-if="!collapsed">Settings</span>
       </button>
-      <button
-          class="flex items-center justify-start gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
-      >
+      <button class="flex items-center justify-start gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
         <ArrowRightEndOnRectangleIcon class="w-5 h-5 text-gray-400" />
         <span v-if="!collapsed">Log out</span>
       </button>
