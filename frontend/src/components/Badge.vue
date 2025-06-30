@@ -1,4 +1,5 @@
 <template>
+  <!-- petit rond, la taille reste fixe et ne déborde jamais -->
   <span :class="['w-2 h-2 rounded-full', color]"></span>
 </template>
 
