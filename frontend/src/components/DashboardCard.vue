@@ -1,17 +1,11 @@
 <!-- src/components/DashboardCard.vue -->
 <template>
-  <div class="relative bg-white rounded-xl shadow p-6 w-full min-w-0">
+  <div class="relative bg-white rounded-xl shadow p-6 w-full max-w-full min-w-0">
     <div class="absolute top-4 right-4 flex space-x-2">
-      <BaseButton
-          @click="handleAdd"
-          class="!p-2 !bg-blue-600 hover:!bg-blue-700 !text-white !rounded-full"
-      >
+      <BaseButton @click="handleAdd" class="!p-2 !bg-blue-600 hover:!bg-blue-700 !text-white !rounded-full cursor-pointer transition transform hover:scale-110">
         <PlusIcon class="w-4 h-4" />
       </BaseButton>
-      <BaseButton
-          @click="handleView"
-          class="!p-2 !bg-blue-600 hover:!bg-blue-700 !text-white !rounded-full"
-      >
+      <BaseButton @click="handleView" class="!p-2 !bg-blue-600 hover:!bg-blue-700 !text-white !rounded-full cursor-pointer transition transform hover:scale-110">
         <ArrowTopRightOnSquareIcon class="w-4 h-4" />
       </BaseButton>
     </div>
@@ -27,39 +21,32 @@
         v-if="image"
         :src="image"
         alt=""
-        class="absolute bottom-4 right-4 w-16 h-16 md:w-24 md:h-24 rounded-lg object-cover"
+        class="absolute bottom-4 right-4 w-16 h-16 md:w-24 md:h-24 rounded-lg object-contain"
     />
   </div>
 </template>
 
 <script>
-import BaseButton from '@/components/BaseButton.vue';
-import { PlusIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import BaseButton from '@/components/BaseButton.vue'
+import { PlusIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid'
 
 export default {
   name: 'DashboardCard',
-  components: {
-    BaseButton,
-    PlusIcon,
-    ArrowTopRightOnSquareIcon
-  },
+  components: { BaseButton, PlusIcon, ArrowTopRightOnSquareIcon },
   props: {
     title: String,
     subtitle: String,
     value: String,
     label: String,
-    image: {
-      type: String,
-      default: null
-    }
+    image: { type: String, default: null },
+    to: { type: [String, Object], default: null }
   },
   methods: {
-    handleAdd() {
-      this.$emit('add', this.title);
-    },
+    handleAdd() { this.$emit('add', this.title) },
     handleView() {
-      this.$emit('view', this.title);
+      if (this.to) this.$router.push(this.to)
+      else this.$emit('view', this.title)
     }
   }
-};
+}
 </script>

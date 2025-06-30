@@ -1,87 +1,95 @@
 <!-- src/components/Navbar.vue -->
 <template>
   <aside
-      class="min-h-screen w-56 lg:w-64 xl:w-72 min-w-0 bg-white border-r border-gray-200 flex flex-col justify-between px-4 py-6 shadow-sm z-10"
+      :class="[
+      'bg-white shadow-sm z-10 transition-width duration-200 border-b md:border-b-0 md:border-r border-gray-200',
+      collapsed
+        ? 'w-full h-16 flex flex-row items-center justify-between px-4 md:w-16 md:h-screen md:flex-col md:px-2 md:py-4'
+        : 'w-full md:w-56 lg:w-64 xl:w-72 h-auto md:h-screen flex flex-col px-2 py-4'
+    ]"
   >
-    <div class="space-y-6">
+    <!-- HEADER : logo + nom + toggle -->
+    <div
+        :class="[
+        'flex items-center w-full',
+        collapsed ? 'justify-between md:justify-center' : 'justify-between mb-6'
+      ]"
+    >
       <div class="flex items-center space-x-2">
+        <!-- Logo : caché en collapsed ≥md, visible autrement -->
         <div
-            class="w-8 h-8 bg-emerald-900 rounded-full flex items-center justify-center text-white font-bold"
+            class="w-8 h-8 bg-white rounded-full flex items-center justify-center
+                 text-gray-900 font-bold border border-gray-200"
+            :class="collapsed ? 'md:hidden' : ''"
         >
           W
         </div>
-        <span class="text-xl font-semibold text-gray-800">Wellness</span>
+        <!-- Nom : visible toujours sur mobile, et sur desktop quand non-collapsed -->
+        <span
+            class="text-xl font-semibold text-gray-800"
+            :class="collapsed ? 'block md:hidden' : 'block'"
+        >
+          Ugo
+        </span>
       </div>
 
-      <div>
-        <p class="text-xs text-gray-400">Week of Oct 21</p>
-        <p class="text-sm text-gray-600">2024</p>
-      </div>
-
-      <nav class="flex flex-col gap-2">
-        <button
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-900 font-medium"
-        >
-          <CalendarIcon class="w-5 h-5 text-gray-500" />
-          Mon
-          <div class="flex items-center gap-1 ml-auto">
-            <BadgeIcon color="bg-blue-500" />
-            <BadgeIcon color="bg-green-500" />
-            <BadgeIcon color="bg-orange-500" />
-            <BadgeIcon color="bg-red-500" />
-          </div>
-        </button>
-        <button
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        >
-          <CalendarIcon class="w-5 h-5 text-gray-400" />
-          Tue
-        </button>
-        <button
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        >
-          <CalendarIcon class="w-5 h-5 text-gray-400" />
-          Wed
-        </button>
-        <button
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        >
-          <CalendarIcon class="w-5 h-5 text-gray-400" />
-          Thu
-        </button>
-        <button
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        >
-          <CalendarIcon class="w-5 h-5 text-gray-400" />
-          Fri
-        </button>
-        <button
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        >
-          <CalendarIcon class="w-5 h-5 text-gray-400" />
-          Sat
-        </button>
-        <button
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        >
-          <CalendarIcon class="w-5 h-5 text-gray-400" />
-          Sun
-        </button>
-      </nav>
+      <Bars3Icon
+          @click="collapsed = !collapsed"
+          class="w-6 h-6 text-black cursor-pointer hover:text-gray-700"
+      />
     </div>
 
-    <div class="flex flex-col gap-2">
+    <!-- INFO SEMAINE (cachée si collapsed) -->
+    <div v-if="!collapsed" class="mb-6">
+      <p class="text-xs text-gray-400">Week of Oct 21</p>
+      <p class="text-sm text-gray-600">2024</p>
+    </div>
+
+    <!-- NAV JOURS -->
+    <nav
+        :class="[
+        collapsed ? 'hidden md:flex md:mt-4 flex-col' : 'flex flex-col',
+        'flex-1 gap-2 overflow-y-auto'
+      ]"
+    >
+      <router-link
+          v-for="day in days"
+          :key="day.key"
+          :to="day.path"
+          exact
+          class="flex items-center gap-2 px-3 py-2 rounded-lg
+               text-gray-600 transition-colors duration-150
+               hover:bg-gray-100 hover:text-gray-800"
+          active-class="bg-gray-200 text-gray-900 font-medium"
+      >
+        <CalendarIcon class="w-5 h-5" />
+        <span v-if="!collapsed">{{ day.label }}</span>
+        <div v-if="day.key === 'mon' && !collapsed" class="flex items-center gap-1 ml-auto">
+          <BadgeIcon color="bg-blue-500" />
+          <BadgeIcon color="bg-green-500" />
+          <BadgeIcon color="bg-orange-500" />
+          <BadgeIcon color="bg-red-500" />
+        </div>
+      </router-link>
+    </nav>
+
+    <!-- FOOTER ACTIONS -->
+    <div
+        :class="collapsed
+        ? 'hidden md:flex flex-col gap-2 mt-auto'
+        : 'mt-auto flex flex-col gap-2'"
+    >
       <button
-          class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
+          class="flex items-center justify-start gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
       >
         <Cog6ToothIcon class="w-5 h-5 text-gray-400" />
-        Settings
+        <span v-if="!collapsed">Settings</span>
       </button>
       <button
-          class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
+          class="flex items-center justify-start gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
       >
         <ArrowRightEndOnRectangleIcon class="w-5 h-5 text-gray-400" />
-        Log out
+        <span v-if="!collapsed">Log out</span>
       </button>
     </div>
   </aside>
@@ -91,7 +99,8 @@
 import {
   CalendarIcon,
   Cog6ToothIcon,
-  ArrowRightEndOnRectangleIcon
+  ArrowRightEndOnRectangleIcon,
+  Bars3Icon
 } from '@heroicons/vue/24/outline'
 import BadgeIcon from '@/components/Badge.vue'
 
@@ -101,7 +110,28 @@ export default {
     CalendarIcon,
     Cog6ToothIcon,
     ArrowRightEndOnRectangleIcon,
+    Bars3Icon,
     BadgeIcon
+  },
+  data() {
+    return {
+      collapsed: false,
+      days: [
+        { key: 'mon', label: 'Mon', path: '/' },
+        { key: 'tue', label: 'Tue', path: '/tue' },
+        { key: 'wed', label: 'Wed', path: '/wed' },
+        { key: 'thu', label: 'Thu', path: '/thu' },
+        { key: 'fri', label: 'Fri', path: '/fri' },
+        { key: 'sat', label: 'Sat', path: '/sat' },
+        { key: 'sun', label: 'Sun', path: '/sun' }
+      ]
+    }
   }
 }
 </script>
+
+<style>
+.transition-width {
+  transition-property: width;
+}
+</style>

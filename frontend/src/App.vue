@@ -1,15 +1,17 @@
 <template>
-  <HomePage/>
+  <div class="flex flex-col md:flex-row h-screen overflow-hidden">
+    <Navbar />
+    <main class="flex-1 overflow-auto">
+      <router-view />
+    </main>
+  </div>
 </template>
 
 <script>
-
-import HomePage from "@/pages/HomePage.vue";
+import Navbar from '@/components/Navbar.vue'
 
 export default {
   name: 'App',
-  components: {
-    HomePage
-  }
+  components: { Navbar }
 }
 </script>
