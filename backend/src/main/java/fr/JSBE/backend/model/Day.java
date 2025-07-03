@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-public class MoodEntry {
+@Table(name = "days", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"user_id", "date"})
+})
+public class Day {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -16,13 +19,21 @@ public class MoodEntry {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @OneToOne
+    @JoinColumn(name = "mood_id")
     private Mood mood;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private WellBeing wellBeing;
+    @OneToOne
+    @JoinColumn(name = "sport_id")
+    private Sport sport;
+
+    @OneToOne
+    @JoinColumn(name = "sleep_id")
+    private Sleep sleep;
+
+    @OneToOne
+    @JoinColumn(name = "diet_id")
+    private Diet diet;
 
     // Getters et setters
     public Long getId() { return id; }
@@ -33,6 +44,10 @@ public class MoodEntry {
     public void setDate(LocalDate date) { this.date = date; }
     public Mood getMood() { return mood; }
     public void setMood(Mood mood) { this.mood = mood; }
-    public WellBeing getWellBeing() { return wellBeing; }
-    public void setWellBeing(WellBeing wellBeing) { this.wellBeing = wellBeing; }
+    public Sport getSport() { return sport; }
+    public void setSport(Sport sport) { this.sport = sport; }
+    public Sleep getSleep() { return sleep; }
+    public void setSleep(Sleep sleep) { this.sleep = sleep; }
+    public Diet getDiet() { return diet; }
+    public void setDiet(Diet diet) { this.diet = diet; }
 } 

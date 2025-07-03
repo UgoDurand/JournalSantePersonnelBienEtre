@@ -5,7 +5,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-public class Activity {
+@Table(name = "sleeps", indexes = {
+    @Index(name = "idx_sleep_user_date", columnList = "user_id, date")
+})
+public class Sleep {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,15 +20,12 @@ public class Activity {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ActivityType type;
+    private LocalTime heureCoucher;
 
     @Column(nullable = false)
-    private Integer duration; // en minutes
+    private LocalTime heureLever;
 
-    @Column(nullable = false)
-    private LocalTime startTime;
 
     // Getters et setters
     public Long getId() { return id; }
@@ -34,10 +34,8 @@ public class Activity {
     public void setUser(User user) { this.user = user; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
-    public ActivityType getType() { return type; }
-    public void setType(ActivityType type) { this.type = type; }
-    public Integer getDuration() { return duration; }
-    public void setDuration(Integer duration) { this.duration = duration; }
-    public LocalTime getStartTime() { return startTime; }
-    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+    public LocalTime getHeureCoucher() { return heureCoucher; }
+    public void setHeureCoucher(LocalTime heureCoucher) { this.heureCoucher = heureCoucher; }
+    public LocalTime getHeureLever() { return heureLever; }
+    public void setHeureLever(LocalTime heureLever) { this.heureLever = heureLever; }
 } 

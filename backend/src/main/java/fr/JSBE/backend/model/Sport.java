@@ -2,9 +2,13 @@ package fr.JSBE.backend.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
-public class SleepEntry {
+@Table(name = "sports", indexes = {
+    @Index(name = "idx_sport_user_date", columnList = "user_id, date")
+})
+public class Sport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,13 +21,13 @@ public class SleepEntry {
     private LocalDate date;
 
     @Column(nullable = false)
-    private Integer duration; // en minutes
+    private String libelle;
 
     @Column(nullable = false)
-    private Integer efficiency; // en %
+    private Integer duree; // en minutes
 
     @Column(nullable = false)
-    private Integer consistency; // en %
+    private LocalTime heure;
 
     // Getters et setters
     public Long getId() { return id; }
@@ -32,10 +36,10 @@ public class SleepEntry {
     public void setUser(User user) { this.user = user; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
-    public Integer getDuration() { return duration; }
-    public void setDuration(Integer duration) { this.duration = duration; }
-    public Integer getEfficiency() { return efficiency; }
-    public void setEfficiency(Integer efficiency) { this.efficiency = efficiency; }
-    public Integer getConsistency() { return consistency; }
-    public void setConsistency(Integer consistency) { this.consistency = consistency; }
+    public String getLibelle() { return libelle; }
+    public void setLibelle(String libelle) { this.libelle = libelle; }
+    public Integer getDuree() { return duree; }
+    public void setDuree(Integer duree) { this.duree = duree; }
+    public LocalTime getHeure() { return heure; }
+    public void setHeure(LocalTime heure) { this.heure = heure; }
 } 
