@@ -14,11 +14,11 @@
         <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
         <p class="text-xs text-gray-500">{{ user.email }}</p>
       </div>
-      <svg 
+      <svg
         class="w-4 h-4 text-gray-400 transition-transform duration-200"
         :class="{ 'rotate-180': isDropdownOpen }"
-        fill="none" 
-        stroke="currentColor" 
+        fill="none"
+        stroke="currentColor"
         viewBox="0 0 24 24"
       >
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -72,17 +72,17 @@
             </svg>
             Informations du compte
           </button>
-          
+
           <button
             @click="refreshUserInfo"
             class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
             :disabled="isRefreshing"
           >
-            <svg 
+            <svg
               class="w-4 h-4 mr-3 text-gray-400"
               :class="{ 'animate-spin': isRefreshing }"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0V9a8 8 0 1115.356 2m-15.356 0H4" />
@@ -142,8 +142,8 @@ export default {
         .substring(0, 2)
     },
     dropdownPositionClasses() {
-      return this.dropdownPosition === 'top' 
-        ? 'bottom-full mb-2' 
+      return this.dropdownPosition === 'top'
+        ? 'bottom-full mb-2'
         : 'top-full mt-2'
     }
   },
@@ -154,18 +154,18 @@ export default {
       }
       this.isDropdownOpen = !this.isDropdownOpen
     },
-    
+
     calculateDropdownPosition() {
       this.$nextTick(() => {
         if (!this.$el) return
-        
+
         const rect = this.$el.getBoundingClientRect()
         const windowHeight = window.innerHeight
         const dropdownHeight = 280
-        
+
         const spaceBelow = windowHeight - rect.bottom
         const spaceAbove = rect.top
-        
+
         if (spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight) {
           this.dropdownPosition = 'top'
         } else {
@@ -173,16 +173,16 @@ export default {
         }
       })
     },
-    
+
     closeDropdown() {
       this.isDropdownOpen = false
     },
-    
+
     showUserDetails() {
       alert(`Informations du compte:\n\nNom: ${this.user.name}\nEmail: ${this.user.email}\nProvider: Microsoft\nID: ${this.user.id || 'N/A'}`)
       this.closeDropdown()
     },
-    
+
     async refreshUserInfo() {
       this.isRefreshing = true
       try {
@@ -194,7 +194,7 @@ export default {
         this.isRefreshing = false
       }
     },
-    
+
     async logout() {
       if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
         this.isLoggingOut = true
@@ -211,36 +211,36 @@ export default {
         }
       }
     },
-    
+
     handleOutsideClick(event) {
       if (!this.$el.contains(event.target)) {
         this.closeDropdown()
       }
     },
-    
+
     handleScroll() {
       if (this.isDropdownOpen) {
         this.calculateDropdownPosition()
       }
     },
-    
+
     handleResize() {
       if (this.isDropdownOpen) {
         this.calculateDropdownPosition()
       }
     }
   },
-  
+
   mounted() {
     document.addEventListener('click', this.handleOutsideClick)
     window.addEventListener('scroll', this.handleScroll, true)
     window.addEventListener('resize', this.handleResize)
   },
-  
+
   beforeUnmount() {
     document.removeEventListener('click', this.handleOutsideClick)
     window.removeEventListener('scroll', this.handleScroll, true)
     window.removeEventListener('resize', this.handleResize)
   }
 }
-</script> 
+</script>
