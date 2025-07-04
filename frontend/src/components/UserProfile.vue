@@ -3,19 +3,21 @@
     <!-- User Menu Button -->
     <button
       @click="toggleDropdown"
-      class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+      class="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 w-full"
+      :class="compact ? 'justify-center' : 'space-x-3'"
     >
-      <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+      <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
         <span class="text-sm font-medium text-white">
           {{ userInitials }}
         </span>
       </div>
-      <div class="hidden md:block text-left">
-        <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
-        <p class="text-xs text-gray-500">{{ user.email }}</p>
+      <div v-if="!compact && shouldShowText" class="text-left min-w-0 flex-1" :class="screenWidth < 768 ? 'max-w-32' : ''">
+        <p class="text-sm font-medium text-gray-900 truncate">{{ user.name }}</p>
+        <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
       </div>
       <svg
-        class="w-4 h-4 text-gray-400 transition-transform duration-200"
+        v-if="!compact && shouldShowText"
+        class="w-4 h-4 text-gray-400 transition-transform duration-200 flex-shrink-0"
         :class="{ 'rotate-180': isDropdownOpen }"
         fill="none"
         stroke="currentColor"
@@ -37,8 +39,9 @@
       <div
         v-if="isDropdownOpen"
         ref="dropdown"
-        class="absolute right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
-        :class="dropdownPositionClasses"
+        class="absolute bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+        :class="[dropdownPositionClasses, dropdownHorizontalPosition]"
+        :style="dropdownWidth"
       >
         <!-- User Info -->
         <div class="px-4 py-3 border-b border-gray-200">
@@ -112,6 +115,117 @@
       @click="closeDropdown"
       class="fixed inset-0 z-40"
     ></div>
+
+    <!-- Modal d'informations utilisateur -->
+    <div
+      v-if="showUserInfoModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      @click="closeUserInfoModal"
+    >
+      <div
+        class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all duration-300"
+        @click.stop
+      >
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Informations du compte</h2>
+          <button
+            @click="closeUserInfoModal"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Avatar et nom -->
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center">
+            <span class="text-xl font-bold text-white">
+              {{ userInitials }}
+            </span>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold text-gray-900">{{ user.name }}</h3>
+            <p class="text-gray-600">{{ user.email }}</p>
+          </div>
+        </div>
+
+        <!-- Informations détaillées -->
+        <div class="space-y-4 mb-6">
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium text-gray-700">Fournisseur d'identité</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057L7.044 14.87l9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352z"/>
+              </svg>
+              <span class="text-green-700 font-medium">Microsoft</span>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium text-gray-700">Identifiant</span>
+            </div>
+            <p class="text-gray-900 font-mono text-sm">{{ user.id || 'N/A' }}</p>
+          </div>
+
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium text-gray-700">Statut du compte</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span class="text-green-700 font-medium">Actif</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message d'information -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div class="flex items-start space-x-3">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            <div>
+              <p class="text-sm font-medium text-blue-900">Information importante</p>
+              <p class="text-sm text-blue-700 mt-1">
+                Ces informations sont gérées par votre fournisseur d'identité (Microsoft) et ne peuvent pas être modifiées depuis cette application.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="closeUserInfoModal"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Fermer
+          </button>
+          <button
+            @click="refreshUserInfo"
+            :disabled="isRefreshing"
+            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+          >
+            <svg
+              class="w-4 h-4"
+              :class="{ 'animate-spin': isRefreshing }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0V9a8 8 0 1115.356 2m-15.356 0H4" />
+            </svg>
+            <span>{{ isRefreshing ? 'Actualisation...' : 'Actualiser' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -120,12 +234,21 @@ import { authService } from '@/services/auth'
 
 export default {
   name: 'UserProfile',
+  props: {
+    compact: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       isDropdownOpen: false,
       isRefreshing: false,
       isLoggingOut: false,
-      dropdownPosition: 'bottom'
+      dropdownPosition: 'bottom',
+      screenWidth: window.innerWidth,
+      dropdownHorizontalPos: 'right-0',
+      showUserInfoModal: false
     }
   },
   computed: {
@@ -145,6 +268,21 @@ export default {
       return this.dropdownPosition === 'top'
         ? 'bottom-full mb-2'
         : 'top-full mt-2'
+    },
+    shouldShowText() {
+      // Afficher le texte sur mobile et desktop, mais pas en mode compact
+      return !this.compact
+    },
+    dropdownHorizontalPosition() {
+      return this.dropdownHorizontalPos
+    },
+    dropdownWidth() {
+      // Largeur fixe pour simplifier, avec une sécurité maximale
+      return {
+        width: '280px',
+        maxWidth: '85vw',
+        minWidth: '200px'
+      }
     }
   },
   methods: {
@@ -159,18 +297,16 @@ export default {
       this.$nextTick(() => {
         if (!this.$el) return
 
-        const rect = this.$el.getBoundingClientRect()
-        const windowHeight = window.innerHeight
-        const dropdownHeight = 280
+        const windowWidth = window.innerWidth
 
-        const spaceBelow = windowHeight - rect.bottom
-        const spaceAbove = rect.top
+        // Toujours positionner en haut
+        this.dropdownPosition = 'top'
 
-        if (spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight) {
-          this.dropdownPosition = 'top'
-        } else {
-          this.dropdownPosition = 'bottom'
-        }
+        // Toujours positionner à gauche du bouton
+        this.dropdownHorizontalPos = 'left-0'
+
+        // Mettre à jour la largeur d'écran
+        this.screenWidth = windowWidth
       })
     },
 
@@ -179,8 +315,12 @@ export default {
     },
 
     showUserDetails() {
-      alert(`Informations du compte:\n\nNom: ${this.user.name}\nEmail: ${this.user.email}\nProvider: Microsoft\nID: ${this.user.id || 'N/A'}`)
+      this.showUserInfoModal = true
       this.closeDropdown()
+    },
+
+    closeUserInfoModal() {
+      this.showUserInfoModal = false
     },
 
     async refreshUserInfo() {
@@ -225,8 +365,19 @@ export default {
     },
 
     handleResize() {
+      this.screenWidth = window.innerWidth
       if (this.isDropdownOpen) {
         this.calculateDropdownPosition()
+      }
+    },
+
+    handleEscapeKey(event) {
+      if (event.key === 'Escape') {
+        if (this.showUserInfoModal) {
+          this.closeUserInfoModal()
+        } else if (this.isDropdownOpen) {
+          this.closeDropdown()
+        }
       }
     }
   },
@@ -235,12 +386,14 @@ export default {
     document.addEventListener('click', this.handleOutsideClick)
     window.addEventListener('scroll', this.handleScroll, true)
     window.addEventListener('resize', this.handleResize)
+    document.addEventListener('keydown', this.handleEscapeKey)
   },
 
   beforeUnmount() {
     document.removeEventListener('click', this.handleOutsideClick)
     window.removeEventListener('scroll', this.handleScroll, true)
     window.removeEventListener('resize', this.handleResize)
+    document.removeEventListener('keydown', this.handleEscapeKey)
   }
 }
 </script>

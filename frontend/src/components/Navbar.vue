@@ -82,7 +82,7 @@
         <UserProfile />
       </div>
       <div v-if="collapsed" class="px-1 py-2 md:px-2">
-        <UserProfile />
+        <UserProfile :compact="true" />
       </div>
     </div>
   </aside>
