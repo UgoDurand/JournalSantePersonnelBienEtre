@@ -453,7 +453,6 @@ export default {
         event.preventDefault()
         event.stopPropagation()
       }
-      
       this.activeTimeButton = 'today'
       this.selectedDate = this.today
       // Aller à la route racine avec le paramètre timeButton
@@ -479,7 +478,6 @@ export default {
         event.preventDefault()
         event.stopPropagation()
       }
-      
       this.activeTimeButton = 'thisWeek'
       // Rester sur la semaine courante mais ne pas forcer à aujourd'hui
       // Si on n'est pas déjà dans la semaine courante, aller à aujourd'hui
@@ -505,7 +503,6 @@ export default {
         event.preventDefault()
         event.stopPropagation()
       }
-      
       this.activeTimeButton = 'lastWeek'
       const lastWeek = new Date(this.today)
       lastWeek.setDate(lastWeek.getDate() - 7)
