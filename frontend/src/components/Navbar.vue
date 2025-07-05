@@ -42,10 +42,11 @@
 
     <!-- SÉLECTEUR DE DATE -->
     <div v-if="!collapsed" class="mb-3 relative">
-      <button
-        @click.stop="toggleDatePicker"
-        class="w-full flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-      >
+              <button
+          @click.stop="toggleDatePicker"
+          @touchstart.stop="toggleDatePicker"
+          class="w-full flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+        >
         <div class="flex items-center space-x-2">
           <CalendarIcon class="w-4 h-4 text-indigo-600" />
           <div class="text-left">
@@ -71,6 +72,8 @@
             :value="selectedDate.toISOString().split('T')[0]"
             :max="today.toISOString().split('T')[0]"
             @change="onDateChange"
+            @input="onDateChange"
+            @blur="onDateChange"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
@@ -96,6 +99,7 @@
       <div class="grid grid-cols-2 gap-2 text-xs">
         <button
           @click="goToToday"
+          @touchstart="goToToday"
           :class="activeTimeButton === 'today' 
             ? 'px-2 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
             : 'px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors'"
@@ -104,6 +108,7 @@
         </button>
         <button
           @click="goToYesterday"
+          @touchstart="goToYesterday"
           :class="activeTimeButton === 'yesterday' 
             ? 'px-2 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
             : 'px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors'"
@@ -112,6 +117,7 @@
         </button>
         <button
           @click="goToThisWeek"
+          @touchstart="goToThisWeek"
           :class="activeTimeButton === 'thisWeek' 
             ? 'px-2 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
             : 'px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors'"
@@ -120,6 +126,7 @@
         </button>
         <button
           @click="goToLastWeek"
+          @touchstart="goToLastWeek"
           :class="activeTimeButton === 'lastWeek' 
             ? 'px-2 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
             : 'px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors'"
@@ -136,7 +143,8 @@
         <button
           v-for="day in weekDays"
           :key="day.date.toISOString()"
-          @click="selectDate(day.date)"
+          @click="selectDate(day.date, $event)"
+          @touchstart="selectDate(day.date, $event)"
           class="w-full flex items-center justify-between p-2 rounded-lg transition-colors"
           :class="[
             day.isSelected 
@@ -351,25 +359,30 @@ export default {
       const seed = date.getTime()
       return levels[seed % levels.length]
     },
-    selectDate(date) {
-      // Logique intelligente pour les boutons "Aujourd'hui" et "Hier"
-      if (this.activeTimeButton === 'today' || this.activeTimeButton === 'yesterday') {
-        const today = this.today
-        const yesterday = this.getYesterdayDate()
-        
-        // Vérifier d'abord si la date correspond exactement à "aujourd'hui" ou "hier"
-        if (this.isSameDay(date, today)) {
-          this.activeTimeButton = 'today'
-        } else if (this.isSameDay(date, yesterday)) {
-          this.activeTimeButton = 'yesterday'
-        } else {
-          // Sinon, vérifier si c'est dans la même semaine
-          const referenceDate = this.activeTimeButton === 'today' ? today : yesterday
-          if (this.isSameWeek(date, referenceDate)) {
-            this.activeTimeButton = 'thisWeek'
-          }
+    selectDate(date, event) {
+      if (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
+      // Logique intelligente pour tous les boutons de navigation temporelle
+      const today = this.today
+      const yesterday = this.getYesterdayDate()
+      
+      // Toujours vérifier si la date correspond exactement à "aujourd'hui" ou "hier"
+      if (this.isSameDay(date, today)) {
+        this.activeTimeButton = 'today'
+      } else if (this.isSameDay(date, yesterday)) {
+        this.activeTimeButton = 'yesterday'
+      } else if (this.activeTimeButton === 'today' || this.activeTimeButton === 'yesterday') {
+        // Si on était sur "Aujourd'hui" ou "Hier" et qu'on va sur une autre date
+        const referenceDate = this.activeTimeButton === 'today' ? today : yesterday
+        if (this.isSameWeek(date, referenceDate)) {
+          this.activeTimeButton = 'thisWeek'
         }
       }
+      // Si on était sur "Cette semaine" et qu'on clique sur aujourd'hui/hier, 
+      // c'est déjà géré par les conditions du dessus
       
       this.selectedDate = date
       this.navigateToDate(date)
@@ -435,7 +448,12 @@ export default {
         this.activeTimeButton = 'today'
       }
     },
-    goToToday() {
+    goToToday(event) {
+      if (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
       this.activeTimeButton = 'today'
       this.selectedDate = this.today
       // Aller à la route racine avec le paramètre timeButton
@@ -444,14 +462,24 @@ export default {
         query: { timeButton: 'today' }
       })
     },
-    goToYesterday() {
+    goToYesterday(event) {
+      if (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
       this.activeTimeButton = 'yesterday'
       const yesterday = new Date(this.today)
       yesterday.setDate(yesterday.getDate() - 1)
       this.selectedDate = yesterday
       this.navigateToDate(yesterday)
     },
-    goToThisWeek() {
+    goToThisWeek(event) {
+      if (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
       this.activeTimeButton = 'thisWeek'
       // Rester sur la semaine courante mais ne pas forcer à aujourd'hui
       // Si on n'est pas déjà dans la semaine courante, aller à aujourd'hui
@@ -472,20 +500,39 @@ export default {
         this.navigateToDate(this.selectedDate)
       }
     },
-    goToLastWeek() {
+    goToLastWeek(event) {
+      if (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
       this.activeTimeButton = 'lastWeek'
       const lastWeek = new Date(this.today)
       lastWeek.setDate(lastWeek.getDate() - 7)
       this.selectedDate = lastWeek
       this.navigateToDate(lastWeek)
     },
-    toggleDatePicker() {
+    toggleDatePicker(event) {
+      // Éviter les événements multiples sur mobile
+      if (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
       this.showDatePicker = !this.showDatePicker
     },
     onDateChange(event) {
-      const selectedDate = new Date(event.target.value)
-      this.selectDate(selectedDate)
-      this.showDatePicker = false
+      const dateValue = event.target.value
+      if (!dateValue) return
+      
+      // Ajouter un petit délai pour éviter les conflits sur mobile
+      this.$nextTick(() => {
+        const selectedDate = new Date(dateValue + 'T00:00:00')
+        if (!isNaN(selectedDate.getTime()) && selectedDate <= this.today) {
+          this.selectDate(selectedDate, event)
+        }
+        this.showDatePicker = false
+      })
     },
 
     openSettings() {
@@ -493,8 +540,14 @@ export default {
       console.log('Open settings')
     },
     handleOutsideClick(event) {
-      if (!this.$el.contains(event.target) && this.showDatePicker) {
-        this.showDatePicker = false
+      // Sur mobile, être plus tolérant avec les événements de fermeture
+      if (!this.$el || !this.$el.contains(event.target)) {
+        if (this.showDatePicker) {
+          // Petit délai pour éviter les fermetures intempestives sur mobile
+          setTimeout(() => {
+            this.showDatePicker = false
+          }, 100)
+        }
       }
     }
   },
