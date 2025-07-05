@@ -346,6 +346,11 @@ export default {
       yesterday.setDate(yesterday.getDate() - 1)
       return yesterday
     },
+    getLastWeekDate() {
+      const lastWeek = new Date(this.today)
+      lastWeek.setDate(lastWeek.getDate() - 7)
+      return lastWeek
+    },
     hasActivityForDate(date) {
       // Simulation - à remplacer par vraies données
       // Utiliser la date comme seed pour une valeur déterministe
@@ -374,15 +379,20 @@ export default {
         this.activeTimeButton = 'today'
       } else if (this.isSameDay(date, yesterday)) {
         this.activeTimeButton = 'yesterday'
-      } else if (this.activeTimeButton === 'today' || this.activeTimeButton === 'yesterday') {
-        // Si on était sur "Aujourd'hui" ou "Hier" et qu'on va sur une autre date
-        const referenceDate = this.activeTimeButton === 'today' ? today : yesterday
-        if (this.isSameWeek(date, referenceDate)) {
+      } else {
+        // Vérifier si c'est dans la semaine courante (pour "Cette semaine")
+        if (this.isSameWeek(date, today)) {
           this.activeTimeButton = 'thisWeek'
+        } 
+        // Vérifier si c'est dans la semaine passée
+        else if (this.isSameWeek(date, this.getLastWeekDate())) {
+          this.activeTimeButton = 'lastWeek'
+        }
+        // Sinon, aucun bouton ne doit être actif
+        else {
+          this.activeTimeButton = null
         }
       }
-      // Si on était sur "Cette semaine" et qu'on clique sur aujourd'hui/hier, 
-      // c'est déjà géré par les conditions du dessus
       
       this.selectedDate = date
       this.navigateToDate(date)
