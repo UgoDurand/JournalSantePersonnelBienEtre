@@ -280,7 +280,14 @@ export default {
       streakCount: 7,
       dailyScore: 85,
       weeklyGoals: { completed: 4, total: 7 },
-      activeTimeButton: 'today' // 'today', 'yesterday', 'thisWeek', 'lastWeek'
+      activeTimeButton: 'today', // 'today', 'yesterday', 'thisWeek', 'lastWeek'
+      // Simulation des données - à remplacer par des vraies données du backend
+      dataByDate: {
+        // Exemple : quelques jours avec des données
+        '2024-12-30': { sleep: 8.5, diet: 2100, activity: 30, mood: 'happy' },
+        '2024-12-29': { sleep: 7.2, diet: 1900, activity: 45, mood: 'neutral' }
+        // Les autres dates n'ont pas de données
+      }
     }
   },
   computed: {
@@ -294,6 +301,27 @@ export default {
         month: 'long', 
         day: 'numeric' 
       })
+    },
+    selectedDateKey() {
+      const year = this.selectedDate.getFullYear()
+      const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0')
+      const day = String(this.selectedDate.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+    hasDataForSelectedDate() {
+      return !!this.dataByDate[this.selectedDateKey]
+    },
+    isSelectedDateToday() {
+      return this.isSameDay(this.selectedDate, this.today)
+    },
+    displayState() {
+      if (this.hasDataForSelectedDate) {
+        return 'WITH_DATA'
+      } else if (this.isSelectedDateToday) {
+        return 'TODAY_NO_DATA'
+      } else {
+        return 'PAST_NO_DATA'
+      }
     },
     weekDays() {
       // Afficher la semaine qui contient la date sélectionnée
@@ -396,6 +424,8 @@ export default {
       
       this.selectedDate = date
       this.navigateToDate(date)
+      this.emitDateChange()
+      this.collapseOnMobile()
     },
     navigateToDate(date) {
       const dateParam = this.getDateParam(date)
@@ -448,6 +478,7 @@ export default {
           const date = new Date(dateParam + 'T00:00:00')
           if (!isNaN(date.getTime()) && date <= this.today) {
             this.selectedDate = date
+            this.emitDateChange()
             return
           }
         }
@@ -457,6 +488,7 @@ export default {
       if (!this.activeTimeButton) {
         this.activeTimeButton = 'today'
       }
+      this.emitDateChange()
     },
     goToToday(event) {
       if (event) {
@@ -470,6 +502,8 @@ export default {
         path: '/',
         query: { timeButton: 'today' }
       })
+      this.emitDateChange()
+      this.collapseOnMobile()
     },
     goToYesterday(event) {
       if (event) {
@@ -482,6 +516,8 @@ export default {
       yesterday.setDate(yesterday.getDate() - 1)
       this.selectedDate = yesterday
       this.navigateToDate(yesterday)
+      this.emitDateChange()
+      this.collapseOnMobile()
     },
     goToThisWeek(event) {
       if (event) {
@@ -507,6 +543,8 @@ export default {
         // Rester sur la date sélectionnée mais mettre à jour l'URL
         this.navigateToDate(this.selectedDate)
       }
+      this.emitDateChange()
+      this.collapseOnMobile()
     },
     goToLastWeek(event) {
       if (event) {
@@ -518,6 +556,8 @@ export default {
       lastWeek.setDate(lastWeek.getDate() - 7)
       this.selectedDate = lastWeek
       this.navigateToDate(lastWeek)
+      this.emitDateChange()
+      this.collapseOnMobile()
     },
     toggleDatePicker(event) {
       // Éviter les événements multiples sur mobile
@@ -539,9 +579,20 @@ export default {
           this.selectDate(selectedDate, event)
         }
         this.showDatePicker = false
+        this.collapseOnMobile()
       })
     },
-
+    emitDateChange() {
+      // Émettre un événement vers le composant parent avec les informations de la date
+      this.$emit('date-changed', {
+        selectedDate: this.selectedDate,
+        displayState: this.displayState,
+        hasData: this.hasDataForSelectedDate,
+        isToday: this.isSelectedDateToday,
+        dateKey: this.selectedDateKey,
+        data: this.dataByDate[this.selectedDateKey] || null
+      })
+    },
     openSettings() {
       // TODO: Implémenter les paramètres
       console.log('Open settings')
@@ -556,6 +607,12 @@ export default {
           }, 100)
         }
       }
+    },
+    collapseOnMobile() {
+      // Fermer la navbar sur mobile (largeur < 768px pour correspondre à la breakpoint md de Tailwind)
+      if (window.innerWidth < 768) {
+        this.collapsed = true
+      }
     }
   },
   watch: {
@@ -569,6 +626,11 @@ export default {
   mounted() {
     // Initialiser avec la date des query parameters ou aujourd'hui
     this.initializeDateFromQuery()
+    
+    // Émettre l'état initial
+    this.$nextTick(() => {
+      this.emitDateChange()
+    })
     
     // Gérer les clics à l'extérieur pour fermer le date picker avec un petit délai
     this.$nextTick(() => {

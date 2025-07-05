@@ -1,9 +1,12 @@
 <template>
   <div class="flex flex-col md:flex-row h-screen overflow-hidden">
     <!-- Navbar visible seulement si l'utilisateur est connecté -->
-    <Navbar v-if="$route.name !== 'Login' && $route.name !== 'OAuthCallback' && isAuthenticated" />
+    <Navbar 
+      v-if="$route.name !== 'Login' && $route.name !== 'OAuthCallback' && isAuthenticated" 
+      @date-changed="onDateChanged"
+    />
     <main class="flex-1 overflow-auto">
-      <router-view />
+      <router-view :date-info="dateInfo" @date-changed="onDateChanged" />
     </main>
   </div>
 </template>
@@ -19,7 +22,8 @@ export default {
   },
   data() {
     return {
-      isAuthenticated: false
+      isAuthenticated: false,
+      dateInfo: null
     }
   },
   async mounted() {
@@ -68,6 +72,10 @@ export default {
     
     updateAuthState() {
       this.isAuthenticated = authService.isAuthenticated()
+    },
+
+    onDateChanged(dateInfo) {
+      this.dateInfo = dateInfo
     }
   }
 }
