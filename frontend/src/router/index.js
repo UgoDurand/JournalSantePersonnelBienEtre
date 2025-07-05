@@ -29,13 +29,13 @@ const routes = [
     },
     { 
         path: '/sleep', 
-        name: 'Sleep', 
+        name: 'SleepDetails', 
         component: SleepDetails,
         meta: { requiresAuth: true }
     },
     { 
         path: '/activity', 
-        name: 'Activity', 
+        name: 'ActivityDetails', 
         component: ActivityDetails,
         meta: { requiresAuth: true }
     },
@@ -47,7 +47,7 @@ const routes = [
     },
     { 
         path: '/diet', 
-        name: 'Diet', 
+        name: 'DietDetails', 
         component: DietDetails,
         meta: { requiresAuth: true }
     },

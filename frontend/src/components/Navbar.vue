@@ -267,6 +267,7 @@ import {
   Bars3Icon
 } from '@heroicons/vue/24/outline'
 import UserProfile  from '@/components/UserProfile.vue'
+import { dataService, getErrorType, formatErrorMessage } from '../services/index.js'
 
 export default {
   name: 'NavbarMenu',
@@ -277,17 +278,16 @@ export default {
       selectedDate: new Date(),
       showDatePicker: false,
       currentWeek: [],
-      streakCount: 7,
-      dailyScore: 85,
-      weeklyGoals: { completed: 4, total: 7 },
       activeTimeButton: 'today', // 'today', 'yesterday', 'thisWeek', 'lastWeek'
-      // Simulation des données - à remplacer par des vraies données du backend
-      dataByDate: {
-        // Exemple : quelques jours avec des données
-        '2024-12-30': { sleep: 8.5, diet: 2100, activity: 30, mood: 'happy' },
-        '2024-12-29': { sleep: 7.2, diet: 1900, activity: 45, mood: 'neutral' }
-        // Les autres dates n'ont pas de données
-      }
+      // États pour la gestion des données
+      isLoading: false,
+      error: null,
+      dataByDate: {},
+      currentData: null,
+      // Statistiques calculées
+      streakCount: 0,
+      dailyScore: 0,
+      weeklyGoals: { completed: 0, total: 7 }
     }
   },
   computed: {
@@ -309,7 +309,8 @@ export default {
       return `${year}-${month}-${day}`
     },
     hasDataForSelectedDate() {
-      return !!this.dataByDate[this.selectedDateKey]
+      const data = this.dataByDate[this.selectedDateKey]
+      return data && data.hasData
     },
     isSelectedDateToday() {
       return this.isSameDay(this.selectedDate, this.today)
@@ -354,6 +355,212 @@ export default {
     }
   },
   methods: {
+    // ====== MÉTHODES POUR API BACKEND ======
+    
+
+
+    /**
+     * Charger les données pour une période (7 derniers jours)
+     */
+    async loadWeekData() {
+      try {
+        this.isLoading = true
+        this.error = null
+        
+        const endDate = new Date()
+        const startDate = new Date()
+        startDate.setDate(endDate.getDate() - 6)
+        
+        const startDateKey = this.getDateKeyFromDate(startDate)
+        const endDateKey = this.getDateKeyFromDate(endDate)
+        
+        console.log('🔄 [Navbar] Chargement des données de la semaine...')
+        console.log('📅 [Navbar] Période:', startDateKey, 'à', endDateKey)
+        
+        const weeklyStats = await dataService.getAllDataForDateRange(
+          startDateKey,
+          endDateKey
+        )
+        
+        console.log('✅ [Navbar] Données reçues:', weeklyStats)
+        
+        // Organiser les données par date
+        this.dataByDate = {}
+        
+        // Créer des entrées pour chaque jour
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(startDate)
+          date.setDate(startDate.getDate() + i)
+          const dateKey = this.getDateKeyFromDate(date)
+          
+          // Chercher les données pour cette date dans les arrays
+          const sleepForDate = weeklyStats.sleep?.find(s => s.date === dateKey) || null
+          const dietForDate = weeklyStats.diet?.find(d => d.date === dateKey) || null
+          const activitiesForDate = weeklyStats.activity?.filter(a => a.date === dateKey) || []
+          const moodForDate = weeklyStats.mood?.find(m => m.date === dateKey) || null
+          
+          // Créer l'objet pour ce jour
+          const dayData = {
+            date: dateKey,
+            sleep: sleepForDate,
+            diet: dietForDate,
+            activity: activitiesForDate,
+            mood: moodForDate,
+            hasData: !!(
+              (sleepForDate && sleepForDate.hasRealData) ||
+              (dietForDate && dietForDate.hasRealData) ||
+              (activitiesForDate && activitiesForDate.length > 0 && activitiesForDate.some(a => a.hasRealData)) ||
+              (moodForDate && moodForDate.hasRealData)
+            )
+          }
+          
+          this.dataByDate[dateKey] = dayData
+        }
+        
+        // Calculer les statistiques
+        this.calculateStatistics()
+        
+      } catch (error) {
+        console.error('Erreur lors du chargement des données de la semaine:', error)
+        this.error = {
+          type: getErrorType(error),
+          message: formatErrorMessage(error)
+        }
+        this.dataByDate = {}
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    /**
+     * Calculer les statistiques à partir des données disponibles
+     */
+    calculateStatistics() {
+      const today = this.getDateKeyFromDate(new Date())
+      const todayData = this.dataByDate[today]
+      
+      // Calculer le score du jour
+      if (todayData?.hasData) {
+        this.dailyScore = this.calculateDayScore(todayData)
+      } else {
+        this.dailyScore = 0
+      }
+      
+      // Calculer le streak (jours consécutifs avec des données)
+      this.streakCount = this.calculateStreak()
+      
+      // Calculer les objectifs hebdomadaires
+      const daysWithData = Object.values(this.dataByDate).filter(day => day.hasData).length
+      this.weeklyGoals = {
+        completed: daysWithData,
+        total: 7
+      }
+    },
+
+    /**
+     * Calculer le score d'une journée (0-100)
+     */
+    calculateDayScore(dayData) {
+      let score = 0
+      let factors = 0
+      
+      if (dayData.sleep) {
+        score += this.calculateSleepScore(dayData.sleep)
+        factors++
+      }
+      
+      if (dayData.diet) {
+        score += this.calculateDietScore(dayData.diet)
+        factors++
+      }
+      
+      if (dayData.activity.length > 0) {
+        score += this.calculateActivityScore(dayData.activity)
+        factors++
+      }
+      
+      if (dayData.mood) {
+        score += this.calculateMoodScore(dayData.mood)
+        factors++
+      }
+      
+      return factors > 0 ? Math.round(score / factors) : 0
+    },
+
+    calculateSleepScore(sleep) {
+      const qualityScores = { 'poor': 20, 'fair': 40, 'good': 70, 'very_good': 85, 'excellent': 100 }
+      return qualityScores[sleep.quality] || 60
+    },
+
+    calculateDietScore(diet) {
+      let score = 50 // Score de base
+      
+      if (diet.calories >= 1200 && diet.calories <= 2800) score += 20
+      if (diet.water >= 1500) score += 15
+      if (diet.protein > 0 && diet.carbs > 0 && diet.fats > 0) score += 15
+      
+      return Math.min(score, 100)
+    },
+
+    calculateActivityScore(activities) {
+      const totalDuration = activities.reduce((sum, activity) => sum + activity.duration, 0)
+      
+      if (totalDuration >= 60) return 100
+      if (totalDuration >= 30) return 80
+      if (totalDuration >= 15) return 60
+      if (totalDuration > 0) return 40
+      return 0
+    },
+
+    calculateMoodScore(mood) {
+      const moodScores = { 'awful': 20, 'bad': 40, 'neutral': 60, 'good': 80, 'great': 100 }
+      const energyScores = { 'sick': 10, 'tired': 30, 'neutral': 50, 'fit': 80, 'energetic': 100 }
+      
+      const moodScore = moodScores[mood.mood] || 60
+      const energyScore = energyScores[mood.energy] || 50
+      
+      return Math.round((moodScore + energyScore) / 2)
+    },
+
+    /**
+     * Calculer le streak de jours consécutifs avec des données
+     */
+    calculateStreak() {
+      let streak = 0
+      const today = new Date()
+      
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(today)
+        date.setDate(today.getDate() - i)
+        const dateKey = this.getDateKeyFromDate(date)
+        
+        if (this.dataByDate[dateKey]?.hasData) {
+          streak++
+        } else {
+          break
+        }
+      }
+      
+      return streak
+    },
+    
+    getDateKeyFromDate(date) {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+
+    /**
+     * Retry en cas d'erreur
+     */
+    async retryLoadData() {
+      await this.loadWeekData()
+      await this.loadDataForDate(this.selectedDate)
+    },
+
+    // ============================================
+    
     isSameDay(date1, date2) {
       return date1.toDateString() === date2.toDateString()
     },
@@ -380,17 +587,25 @@ export default {
       return lastWeek
     },
     hasActivityForDate(date) {
-      // Simulation - à remplacer par vraies données
-      // Utiliser la date comme seed pour une valeur déterministe
-      const seed = date.getTime()
-      return (seed % 10) > 3
+      const dateKey = this.getDateKeyFromDate(date)
+      const dayData = this.dataByDate[dateKey]
+      return !!(dayData && dayData.hasData)
     },
     getActivityLevel(date) {
-      // Simulation - retourne 'high', 'medium', 'low', 'none'
-      const levels = ['high', 'medium', 'low', 'none']
-      // Utiliser la date comme seed pour une valeur déterministe
-      const seed = date.getTime()
-      return levels[seed % levels.length]
+      const dateKey = this.getDateKeyFromDate(date)
+      const dayData = this.dataByDate[dateKey]
+      
+      if (!dayData || !dayData.hasData) {
+        return 'none'
+      }
+      
+      // Calculer le niveau d'activité basé sur les données réelles
+      const score = this.calculateDayScore(dayData)
+      
+      if (score >= 80) return 'high'
+      if (score >= 60) return 'medium'
+      if (score >= 30) return 'low'
+      return 'none'
     },
     selectDate(date, event) {
       if (event) {
@@ -582,15 +797,122 @@ export default {
         this.collapseOnMobile()
       })
     },
+    
+    // ====== MÉTHODES DE FORMATAGE POUR L'AFFICHAGE ======
+    
+    formatSleepData(sleepData) {
+      if (!sleepData || !sleepData.bedtime || !sleepData.wakeup) return null
+      
+      // Calculer la durée de sommeil en heures
+      const bedTime = new Date(`1970-01-01T${sleepData.bedtime}`)
+      let wakeUp = new Date(`1970-01-01T${sleepData.wakeup}`)
+      
+      // Si l'heure de réveil est antérieure à l'heure de coucher, 
+      // cela signifie qu'on se réveille le jour suivant
+      if (wakeUp < bedTime) {
+        wakeUp = new Date(`1970-01-02T${sleepData.wakeup}`)
+      }
+      
+      const durationMs = wakeUp - bedTime
+      const hours = Math.floor(durationMs / (1000 * 60 * 60))
+      const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60))
+      
+      return `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`
+    },
+    
+    formatDietData(dietData) {
+      if (!dietData) return null
+      
+      // Retourner les calories ou "Complet" si toutes les informations sont renseignées
+      if (dietData.calories) {
+        return `${dietData.calories} kcal`
+      } else if (dietData.breakfast || dietData.lunch || dietData.dinner) {
+        return 'Partiellement renseigné'
+      }
+      
+      return null
+    },
+    
+    formatActivityData(activities) {
+      if (!activities || activities.length === 0) return null
+      
+      // Calculer la durée totale d'activité
+      const totalDuration = activities.reduce((total, activity) => {
+        return total + (parseInt(activity.duration) || 0)
+      }, 0)
+      
+      return totalDuration > 0 ? totalDuration : null
+    },
+    
+    formatMoodData(moodData) {
+      if (!moodData || !moodData.mood) return null
+      
+      // Retourner directement la valeur mood pour affichage avec emoji
+      return moodData.mood
+    },
+    
     emitDateChange() {
+      const rawData = this.dataByDate[this.selectedDateKey]
+      
+      // Analyser chaque type de donnée individuellement
+      const individualData = {
+        sleep: {
+          hasData: !!(rawData?.sleep && rawData.sleep.hasRealData),
+          formattedData: rawData?.sleep ? this.formatSleepData(rawData.sleep) : null
+        },
+        diet: {
+          hasData: !!(rawData?.diet && rawData.diet.hasRealData),
+          formattedData: rawData?.diet ? this.formatDietData(rawData.diet) : null
+        },
+        activity: {
+          hasData: !!(rawData?.activity && rawData.activity.length > 0 && rawData.activity.some(a => a.hasRealData)),
+          formattedData: rawData?.activity ? this.formatActivityData(rawData.activity) : null
+        },
+        mood: {
+          hasData: !!(rawData?.mood && rawData.mood.hasRealData),
+          formattedData: rawData?.mood ? this.formatMoodData(rawData.mood) : null
+        }
+      }
+      
+      console.log('📤 [Navbar] Émission des données individuelles:', individualData)
+      
+      // Déterminer le displayState global
+      const hasAnyData = individualData.sleep.hasData || 
+                         individualData.diet.hasData || 
+                         individualData.activity.hasData || 
+                         individualData.mood.hasData
+      
+      let globalDisplayState
+      if (hasAnyData) {
+        globalDisplayState = 'WITH_DATA'
+      } else if (this.isSelectedDateToday) {
+        globalDisplayState = 'TODAY_NO_DATA'
+      } else {
+        globalDisplayState = 'PAST_NO_DATA'
+      }
+      
       // Émettre un événement vers le composant parent avec les informations de la date
       this.$emit('date-changed', {
         selectedDate: this.selectedDate,
-        displayState: this.displayState,
-        hasData: this.hasDataForSelectedDate,
+        displayState: globalDisplayState,
+        hasData: hasAnyData,
         isToday: this.isSelectedDateToday,
         dateKey: this.selectedDateKey,
-        data: this.dataByDate[this.selectedDateKey] || null
+        individualData: individualData,
+        // NOUVELLES DONNÉES COMPLÈTES pour éviter les requêtes dupliquées
+        fullData: rawData ? {
+          sleep: rawData.sleep,
+          diet: rawData.diet,
+          activity: rawData.activity,
+          mood: rawData.mood
+        } : null,
+        // Garde la compatibilité avec l'ancien format
+        data: hasAnyData ? {
+          sleep: individualData.sleep.formattedData,
+          diet: individualData.diet.formattedData,
+          activity: individualData.activity.formattedData,
+          mood: individualData.mood.formattedData
+        } : null
       })
     },
     openSettings() {
@@ -623,9 +945,12 @@ export default {
       immediate: false
     }
   },
-  mounted() {
+  async mounted() {
     // Initialiser avec la date des query parameters ou aujourd'hui
     this.initializeDateFromQuery()
+    
+    // Charger les données de la semaine (qui inclut la date sélectionnée)
+    await this.loadWeekData()
     
     // Émettre l'état initial
     this.$nextTick(() => {

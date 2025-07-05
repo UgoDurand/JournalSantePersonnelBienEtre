@@ -1,5 +1,6 @@
 package fr.JSBE.backend.config;
 
+import fr.JSBE.backend.security.JwtAuthenticationFilter;
 import fr.JSBE.backend.service.OAuth2UserService;
 import fr.JSBE.backend.security.OAuth2AuthenticationSuccessHandler;
 import fr.JSBE.backend.security.OAuth2AuthenticationFailureHandler;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -32,6 +34,9 @@ public class SecurityConfig {
     @Autowired
     private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    
     /**
      * Configuration de la chaîne de filtres de sécurité
      * @param http l'objet HttpSecurity pour configurer la sécurité
@@ -49,8 +54,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/error", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/error", "/favicon.ico", "/health").permitAll()
                 .requestMatchers("/static/**", "/public/**", "/assets/**").permitAll()
                 .requestMatchers("*.png", "*.gif", "*.svg", "*.jpg", "*.jpeg", "*.ico").permitAll()
                 .requestMatchers("*.html", "*.css", "*.js").permitAll()

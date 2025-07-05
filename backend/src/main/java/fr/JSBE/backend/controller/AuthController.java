@@ -107,10 +107,10 @@ public class AuthController {
     @GetMapping("/info")
     public ResponseEntity<?> getAuthInfo() {
         return ResponseEntity.ok().body("{\n" +
-            "  \"providers\": [\"microsoft\"],\n" +
-            "  \"loginUrls\": {\n" +
-            "    \"microsoft\": \"/oauth2/authorize/microsoft\"\n" +
-            "  }\n" +
+            "  \"authType\": \"oauth2\",\n" +
+            "  \"provider\": \"microsoft\",\n" +
+            "  \"loginUrl\": \"/oauth2/authorize/microsoft\",\n" +
+            "  \"status\": \"active\"\n" +
             "}");
     }
 } 
