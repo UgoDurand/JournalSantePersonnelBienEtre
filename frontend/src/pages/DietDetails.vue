@@ -359,8 +359,8 @@
             <button @click="closeDietModal" class="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
               Annuler
             </button>
-            <button @click="saveDietData" class="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700">
-              Enregistrer
+            <button @click="saveDietData" class="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700" :disabled="isSaving">
+              {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
             </button>
           </div>
         </div>
@@ -370,6 +370,7 @@
 </template>
 
 <script>
+import { dietService } from '../services/index.js'
 export default {
   name: 'DietDetails',
   data() {
@@ -396,7 +397,8 @@ export default {
       summary: { calories: '', protein: '', carbs: '', fats: '' },
       glassSize: 250,
       targetVolume: 1500,
-      water: 0
+      water: 0,
+      isSaving: false
     }
   },
   computed: {
@@ -411,13 +413,19 @@ export default {
     closeDietModal() {
       this.showDietModal = false
     },
-    saveDietData() {
-      console.log('Données d\'alimentation modifiées:', this.dietData)
-      // TODO: Ici on enverra les données au backend
-      this.showDietModal = false
-      
-      // Message de confirmation
-      alert('Données d\'alimentation mises à jour avec succès !')
+    async saveDietData() {
+      this.isSaving = true;
+      try {
+        // On suppose que la date est aujourd'hui (à adapter si besoin)
+        const today = new Date().toISOString().split('T')[0];
+        await dietService.createOrUpdate(today, this.dietData);
+        this.showDietModal = false;
+        alert('Données d\'alimentation mises à jour avec succès !');
+      } catch (error) {
+        alert('Erreur lors de l\'enregistrement : ' + (error.message || error));
+      } finally {
+        this.isSaving = false;
+      }
     },
     addWater() {
       this.dietData.water += 250

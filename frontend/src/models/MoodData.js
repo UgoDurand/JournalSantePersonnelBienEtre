@@ -4,16 +4,16 @@
  */
 export class MoodData {
   constructor(data = {}) {
-    this.id = data.id || null
-    this.date = data.date || new Date().toISOString().split('T')[0]
-    this.mood = data.mood || 'neutral'
-    this.energy = data.energy || 'neutral'
-    this.stress = data.stress || 'neutral'
-    this.anxiety = data.anxiety || 'neutral'
-    this.notes = data.notes || ''
-    this.triggers = data.triggers || []
-    this.createdAt = data.createdAt || new Date().toISOString()
-    this.updatedAt = data.updatedAt || new Date().toISOString()
+    this.id = data.id;
+    this.date = data.date;
+    this.mood = (data.mood || 'neutral').toLowerCase();
+    this.energy = (data.energy || 'neutral').toLowerCase();
+    this.stress = (data.stress || 'neutral').toLowerCase();
+    this.anxiety = (data.anxiety || 'neutral').toLowerCase();
+    this.notes = data.notes || '';
+    this.triggers = data.triggers || [];
+    this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
   }
 
   /**
@@ -133,7 +133,7 @@ export class MoodData {
       'low': '😌',
       'very_low': '😇'
     }
-    return emojis[this.anxiety.toLowerCase()] || '😐'
+    return emojis[this.anxiety.toLowerCase()] || '��'
   }
 
   /**
@@ -244,24 +244,30 @@ export class MoodData {
    * @returns {MoodData} Instance de MoodData
    */
   static fromAPI(apiData) {
-    // Mapper les propriétés API vers les propriétés du modèle
+    console.log('[DEBUG][fromAPI] apiData reçu:', apiData);
+    if (!apiData) {
+      throw new Error("Aucune donnée d'humeur reçue du backend (apiData est vide ou undefined)");
+    }
+    const moodMap = { 1: 'awful', 2: 'bad', 3: 'neutral', 4: 'good', 5: 'great' };
+    const energyMap = { 1: 'sick', 2: 'tired', 3: 'neutral', 4: 'fit', 5: 'energetic' };
+    const stressMap = { 1: 'very_high', 2: 'high', 3: 'neutral', 4: 'low', 5: 'very_low' };
+    const anxietyMap = { 1: 'very_high', 2: 'high', 3: 'neutral', 4: 'low', 5: 'very_low' };
+
     const mappedData = {
       id: apiData.id,
       date: apiData.date,
-      mood: apiData.moodRating || apiData.mood || 'neutral',
-      energy: apiData.energyLevel || apiData.energy || 'neutral',
-      stress: apiData.stressLevel || apiData.stress || 'neutral',
-      anxiety: apiData.anxiety || 'neutral',
-      notes: apiData.notes || '',
-      triggers: apiData.triggers || [],
+      mood: moodMap[apiData.moodRating ?? 3] || 'neutral',
+      energy: energyMap[apiData.energyLevel ?? 3] || 'neutral',
+      stress: stressMap[apiData.stressLevel ?? 3] || 'neutral',
+      anxiety: anxietyMap[apiData.anxiety ?? 3] || 'neutral',
+      notes: apiData.notes ?? '',
+      triggers: apiData.triggers ?? [],
       createdAt: apiData.createdAt,
       updatedAt: apiData.updatedAt
-    }
-    
-    const instance = new MoodData(mappedData)
-    // Stocker les données originales pour vérifier si elles sont réellement renseignées
-    instance._originalApiData = apiData
-    return instance
+    };
+    const instance = new MoodData(mappedData);
+    instance._originalApiData = apiData;
+    return instance;
   }
 
   /**
@@ -269,12 +275,23 @@ export class MoodData {
    * @returns {Object} Données au format API
    */
   toAPI() {
+    const moodMap = { 'awful': 1, 'bad': 2, 'neutral': 3, 'good': 4, 'great': 5 };
+    const energyMap = { 'sick': 1, 'tired': 2, 'neutral': 3, 'fit': 4, 'energetic': 5 };
+    const stressMap = { 'very_high': 1, 'high': 2, 'neutral': 3, 'low': 4, 'very_low': 5 };
+    const anxietyMap = { 'very_high': 1, 'high': 2, 'neutral': 3, 'low': 4, 'very_low': 5 };
+
+    // On force la casse en minuscules pour le mapping
+    const mood = (this.mood || '').toLowerCase();
+    const energy = (this.energy || '').toLowerCase();
+    const stress = (this.stress || '').toLowerCase();
+    const anxiety = (this.anxiety || '').toLowerCase();
+
     return {
       date: this.date,
-      mood: this.mood,
-      energy: this.energy,
-      stress: this.stress,
-      anxiety: this.anxiety,
+      moodRating: moodMap[mood] || 3,
+      energyLevel: energyMap[energy] || 3,
+      stressLevel: stressMap[stress] || 3,
+      anxiety: anxietyMap[anxiety] || 3,
       notes: this.notes,
       triggers: this.triggers
     }

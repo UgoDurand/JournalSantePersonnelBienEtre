@@ -134,7 +134,7 @@ public class MoodController {
             existing.setNotes(moodData.getNotes());
             
             Mood saved = moodRepository.save(existing);
-            return ResponseEntity.ok(saved);
+            return ResponseEntity.ok(saved); // <-- On retourne bien l'objet modifié ici
             
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");

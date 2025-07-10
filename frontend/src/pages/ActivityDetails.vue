@@ -113,71 +113,31 @@
             Séances d'Aujourd'hui
           </h2>
 
-          <div class="space-y-4">
-            <div class="p-4 bg-blue-50 rounded-2xl border-l-4 border-blue-400">
-              <div class="flex items-center justify-between mb-3">
+          <div v-if="isLoading" class="flex justify-center items-center min-h-[100px]">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+          </div>
+          <div v-else>
+            <div v-if="todayActivities.length === 0" class="text-center text-gray-500">Aucune activité enregistrée aujourd'hui.</div>
+            <div v-for="activity in todayActivities" :key="activity.id" class="p-4 bg-blue-50 rounded-2xl border-l-4 border-blue-400 mb-2">
+              <div class="flex items-center justify-between mb-2">
                 <h3 class="font-semibold text-blue-800 flex items-center">
-                  <span class="text-xl mr-2">🏃‍♀️</span>
-                  Aucune activité
+                  <span class="text-xl mr-2">🏃‍♂️</span>
+                  {{ activity.name || 'Activité' }}
                 </h3>
-                <div class="text-right">
-                  <span class="text-blue-600 font-bold text-sm">280 kcal</span>
-                </div>
+                <span class="text-blue-600 font-bold text-sm">{{ activity.calories || '-' }} kcal</span>
               </div>
               <div class="grid grid-cols-3 gap-4 text-sm">
                 <div class="text-center">
-                  <div class="font-semibold text-blue-700">35 min</div>
+                  <div class="font-semibold text-blue-700">{{ activity.duration }} min</div>
                   <div class="text-blue-600">Durée</div>
                 </div>
                 <div class="text-center">
-                  <div class="font-semibold text-blue-700">-</div>
-                  <div class="text-blue-600">Distance</div>
+                  <div class="font-semibold text-blue-700">{{ activity.intensity }}</div>
+                  <div class="text-blue-600">Intensité</div>
                 </div>
                 <div class="text-center">
-                  <div class="font-semibold text-blue-700">7.5 km/h</div>
-                  <div class="text-blue-600">Vitesse</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-4 bg-purple-50 rounded-2xl border-l-4 border-purple-400">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="font-semibold text-purple-800 flex items-center">
-                  <span class="text-xl mr-2">🏋️‍♀️</span>
-                  Aucune activité
-                </h3>
-                <div class="text-right">
-                  <span class="text-purple-600 font-bold text-sm">200 kcal</span>
-                </div>
-              </div>
-              <div class="grid grid-cols-3 gap-4 text-sm">
-                <div class="text-center">
-                  <div class="font-semibold text-purple-700">30 min</div>
-                  <div class="text-purple-600">Durée</div>
-                </div>
-                <div class="text-center">
-                  <div class="font-semibold text-purple-700">Élevée</div>
-                  <div class="text-purple-600">Intensité</div>
-                </div>
-                <div class="text-center">
-                  <div class="font-semibold text-purple-700">12 exos</div>
-                  <div class="text-purple-600">Exercices</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-4 bg-green-50 rounded-2xl">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <span class="text-2xl mr-3">🎯</span>
-                  <div>
-                    <div class="font-semibold text-green-800">Objectif quotidien</div>
-                    <div class="text-green-600 text-sm">400 kcal / 45 min</div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-green-600 font-bold">120%</div>
-                  <div class="text-green-500 text-sm">Dépassé !</div>
+                  <div class="font-semibold text-blue-700">{{ activity.time || '-' }}</div>
+                  <div class="text-blue-600">Heure</div>
                 </div>
               </div>
             </div>
@@ -388,8 +348,8 @@
             <button @click="closeActivityModal" class="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
               Annuler
             </button>
-            <button @click="saveActivityData" class="flex-1 py-3 px-4 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:from-orange-600 hover:to-red-700">
-              Enregistrer
+            <button @click="saveActivityData" class="flex-1 py-3 px-4 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:from-orange-600 hover:to-red-700" :disabled="isSaving">
+              {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
             </button>
           </div>
         </div>
@@ -399,8 +359,23 @@
 </template>
 
 <script>
+import { activityService } from '../services/index.js'
+import { useToast } from 'vue-toastification'
 export default {
   name: 'ActivityDetails',
+  props: {
+    selectedDate: {
+      type: Date,
+      default() {
+        const dateStr = this?.$route?.query?.date;
+        if (dateStr) {
+          const d = new Date(dateStr + 'T00:00:00');
+          if (!isNaN(d.getTime())) return d;
+        }
+        return new Date();
+      }
+    }
+  },
   data() {
     return {
       showActivityModal: false,
@@ -417,7 +392,9 @@ export default {
         { value: 'high', emoji: '💪', label: 'Élevée' }
       ],
       weeklyActivityData: [],
-      todayActivities: []
+      todayActivities: [],
+      isSaving: false,
+      isLoading: true // loader pour la liste
     }
   },
   computed: {
@@ -425,23 +402,21 @@ export default {
       if (this.activityData.duration && this.activityData.intensity) {
         const duration = parseInt(this.activityData.duration);
         let caloriesPerMinute = 5; // Base pour intensité modérée
-        
         switch (this.activityData.intensity) {
-          case 'low':
-            caloriesPerMinute = 3;
-            break;
-          case 'moderate':
-            caloriesPerMinute = 5;
-            break;
-          case 'high':
-            caloriesPerMinute = 8;
-            break;
+          case 'low': caloriesPerMinute = 3; break;
+          case 'moderate': caloriesPerMinute = 5; break;
+          case 'high': caloriesPerMinute = 8; break;
         }
-        
         return Math.round(duration * caloriesPerMinute);
       }
       return null;
     }
+  },
+  async mounted() {
+    this.isLoading = true;
+    await this.loadTodayActivities();
+    this.isLoading = false;
+    document.addEventListener('keydown', this.handleEscapeKey);
   },
   methods: {
     openActivityModal() {
@@ -450,35 +425,47 @@ export default {
     closeActivityModal() {
       this.showActivityModal = false;
     },
-    saveActivityData() {
-      // Validation basique
+    async loadTodayActivities() {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        this.todayActivities = await activityService.getByDate(today);
+      } catch (e) {
+        this.todayActivities = [];
+      }
+    },
+    async refreshTodayActivities() {
+      await this.loadTodayActivities();
+    },
+    async saveActivityData() {
+      const toast = useToast();
       if (!this.activityData.name || !this.activityData.duration) {
-        alert('Veuillez remplir le type d\'activité et la durée');
+        toast.error('Veuillez remplir le type d\'activité et la durée');
         return;
       }
-      
-      // Utiliser l'estimation si pas de calories renseignées
-      const finalData = {
-        ...this.activityData,
-        calories: this.activityData.calories || this.estimatedCalories
-      };
-      
-      console.log('Données d\'activité modifiées:', finalData);
-      // TODO: Ici on enverra les données au backend
-      this.showActivityModal = false;
-      
-      // Message de confirmation
-      alert('Données d\'activité mises à jour avec succès !');
+      this.isSaving = true;
+      try {
+        const dateKey = this.selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
+        const finalData = {
+          ...this.activityData,
+          calories: this.activityData.calories || this.estimatedCalories,
+          date: dateKey
+        };
+        await activityService.create(finalData);
+        this.showActivityModal = false;
+        toast.success('Activité enregistrée avec succès !');
+        this.activityData = { name: '', duration: '', time: '', intensity: 'moderate', calories: '' };
+        await this.refreshTodayActivities();
+      } catch (error) {
+        toast.error('Erreur lors de l\'enregistrement : ' + (error.message || error));
+      } finally {
+        this.isSaving = false;
+      }
     },
     handleEscapeKey(event) {
       if (event.key === 'Escape' && this.showActivityModal) {
         this.closeActivityModal();
       }
     }
-  },
-  mounted() {
-    // Gestion de la touche Escape pour fermer la modal
-    document.addEventListener('keydown', this.handleEscapeKey);
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);

@@ -166,22 +166,22 @@ export class DataValidator {
     }
 
     const validMoods = ['awful', 'bad', 'neutral', 'good', 'great']
-    if (!validMoods.includes(data.mood)) {
+    if (!validMoods.includes((data.mood || '').toLowerCase())) {
       errors.push('L\'humeur doit être l\'une des valeurs suivantes: ' + validMoods.join(', '))
     }
 
     const validEnergyLevels = ['sick', 'tired', 'neutral', 'fit', 'energetic']
-    if (!validEnergyLevels.includes(data.energy)) {
+    if (!validEnergyLevels.includes((data.energy || '').toLowerCase())) {
       errors.push('Le niveau d\'énergie doit être l\'une des valeurs suivantes: ' + validEnergyLevels.join(', '))
     }
 
     const validStressLevels = ['very_high', 'high', 'neutral', 'low', 'very_low']
-    if (data.stress && !validStressLevels.includes(data.stress)) {
+    if (data.stress && !validStressLevels.includes((data.stress || '').toLowerCase())) {
       errors.push('Le niveau de stress doit être l\'une des valeurs suivantes: ' + validStressLevels.join(', '))
     }
 
     const validAnxietyLevels = ['very_high', 'high', 'neutral', 'low', 'very_low']
-    if (data.anxiety && !validAnxietyLevels.includes(data.anxiety)) {
+    if (data.anxiety && !validAnxietyLevels.includes((data.anxiety || '').toLowerCase())) {
       errors.push('Le niveau d\'anxiété doit être l\'une des valeurs suivantes: ' + validAnxietyLevels.join(', '))
     }
 

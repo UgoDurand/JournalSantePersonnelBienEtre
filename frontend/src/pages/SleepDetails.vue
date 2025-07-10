@@ -318,8 +318,8 @@
             <button @click="closeSleepModal" class="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
               Annuler
             </button>
-            <button @click="saveSleepData" class="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700">
-              Enregistrer
+            <button @click="saveSleepData" class="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700" :disabled="isSaving">
+              {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
             </button>
           </div>
         </div>
@@ -329,6 +329,7 @@
 </template>
 
 <script>
+import { sleepService } from '../services/index.js'
 export default {
   name: 'SleepDetails',
   data() {
@@ -347,9 +348,8 @@ export default {
         { value: 'excellent', emoji: '😁', label: 'Excellent' }
       ],
       weeklyData: [],
-      history: [
-
-      ]
+      history: [],
+      isSaving: false
     }
   },
   computed: {
@@ -380,22 +380,25 @@ export default {
     closeSleepModal() {
       this.showSleepModal = false;
     },
-    saveSleepData() {
-      // Validation basique
+    async saveSleepData() {
       if (!this.sleepData.bedtime || !this.sleepData.wakeup) {
         alert('Veuillez remplir les heures de coucher et de réveil');
         return;
       }
-      
-      console.log('Données de sommeil modifiées:', {
-        ...this.sleepData,
-        duration: this.sleepDuration
-      });
-      // TODO: Ici on enverra les données au backend
-      this.showSleepModal = false;
-      
-      // Message de confirmation
-      alert('Données de sommeil mises à jour avec succès !');
+      this.isSaving = true;
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        await sleepService.createOrUpdate(today, {
+          ...this.sleepData,
+          duration: this.sleepDuration
+        });
+        this.showSleepModal = false;
+        alert('Données de sommeil mises à jour avec succès !');
+      } catch (error) {
+        alert('Erreur lors de l\'enregistrement : ' + (error.message || error));
+      } finally {
+        this.isSaving = false;
+      }
     },
     handleEscapeKey(event) {
       if (event.key === 'Escape' && this.showSleepModal) {

@@ -786,10 +786,10 @@ export default {
     onDateChange(event) {
       const dateValue = event.target.value
       if (!dateValue) return
-      
-      // Ajouter un petit délai pour éviter les conflits sur mobile
+      // Correction : créer la date en local pour éviter le décalage UTC
       this.$nextTick(() => {
-        const selectedDate = new Date(dateValue + 'T00:00:00')
+        const [year, month, day] = dateValue.split('-')
+        const selectedDate = new Date(Number(year), Number(month) - 1, Number(day))
         if (!isNaN(selectedDate.getTime()) && selectedDate <= this.today) {
           this.selectDate(selectedDate, event)
         }

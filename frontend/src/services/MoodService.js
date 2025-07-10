@@ -77,6 +77,7 @@ export class MoodService extends BaseService {
    * @returns {Promise<MoodData>}
    */
   async create(moodData) {
+    console.log('[DEBUG] Appel de MoodService.create avec:', moodData);
     // Validation des données
     const errors = DataValidator.validateMood(moodData)
     if (errors.length > 0) {
@@ -88,8 +89,10 @@ export class MoodService extends BaseService {
     try {
       const response = await this.post('/mood', moodModel.toAPI())
       console.log('😊 [MoodService] Réponse POST create:', response)
-      
+      // Ajout du log debug pour voir la réponse brute
+      console.log('[DEBUG] Réponse backend mood:', response, response.data);
       // Vérifier si response a .data ou est directement les données
+      console.log('[DEBUG] Réponse brute backend:', response, response.data);
       const responseData = response.data || response
       return MoodData.fromAPI(responseData)
     } catch (error) {
@@ -107,6 +110,7 @@ export class MoodService extends BaseService {
    * @returns {Promise<MoodData>}
    */
   async update(id, moodData) {
+    console.log('[DEBUG] Appel de MoodService.update avec:', id, moodData);
     // Validation des données
     const errors = DataValidator.validateMood(moodData)
     if (errors.length > 0) {
@@ -114,10 +118,16 @@ export class MoodService extends BaseService {
     }
 
     const moodModel = new MoodData(moodData)
-    
     try {
       const response = await this.put(`/mood/${id}`, moodModel.toAPI())
-      return MoodData.fromAPI(response.data)
+      // Ajout du log debug pour voir la réponse brute lors de l'update
+      console.log('[DEBUG] Réponse brute backend (update):', response, response.data);
+      const responseData = response.data || response;
+      if (!responseData) {
+        console.error('[MoodService] Réponse vide ou undefined lors de l\'update:', response);
+        throw new Error("Aucune donnée d'humeur reçue du backend (update vide)");
+      }
+      return MoodData.fromAPI(responseData)
     } catch (error) {
       if (error.message.includes('404')) {
         throw new Error('Entrée non trouvée')

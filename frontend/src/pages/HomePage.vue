@@ -792,6 +792,9 @@
 
 <script>
 import { dataService, getErrorType, formatErrorMessage } from '../services/index.js'
+import { MoodData } from '../models/MoodData.js'
+import { useToast } from 'vue-toastification'
+
 export default {
   name: 'HomePage',
   components: {
@@ -1134,15 +1137,10 @@ export default {
       this.showDietModal = false
     },
     openActivityModal() {
-      // Si les données existent déjà, rediriger vers les détails
       if (this.individualData.activity.hasData) {
-        console.log('🔄 [HomePage] Redirection vers les détails de l\'activité')
-        this.$router.push({ name: 'ActivityDetails' })
+        this.$router.push({ name: 'ActivityDetails', query: { date: this.selectedDate.toISOString().split('T')[0] } })
         return
       }
-      
-      // Sinon, ouvrir la modale d'ajout
-      console.log('➕ [HomePage] Ouverture de la modale d\'ajout de l\'activité')
       this.clearActivityErrors()
       this.isEditMode = false
       this.resetActivityForm()
@@ -1152,15 +1150,10 @@ export default {
       this.showActivityModal = false
     },
     openMoodModal() {
-      // Si les données existent déjà, rediriger vers les détails
       if (this.individualData.mood.hasData) {
-        console.log('🔄 [HomePage] Redirection vers les détails de l\'humeur')
-        this.$router.push({ name: 'Mood' })
+        this.$router.push({ name: 'Mood', query: { date: this.selectedDate.toISOString().split('T')[0] } })
         return
       }
-      
-      // Sinon, ouvrir la modale d'ajout
-      console.log('➕ [HomePage] Ouverture de la modale d\'ajout de l\'humeur')
       this.clearMoodErrors()
       this.isEditMode = false
       this.resetMoodForm()
@@ -1483,29 +1476,36 @@ export default {
       }
     },
     async saveMoodData() {
+      const toast = useToast();
       // Validation complète
       if (!this.validateMoodData()) {
         return // Les erreurs sont déjà stockées dans moodErrors
       }
-      
       try {
         this.isSaving = true
         this.error = null
-        
         const dateKey = this.selectedDate.toISOString().split('T')[0]
-        
-        await dataService.saveMoodData(dateKey, this.moodData)
-        
+        // On complète l'objet avec tous les champs attendus
+        const moodDataRaw = {
+          mood: this.moodData.mood || 'neutral',
+          energy: this.moodData.energy || 'neutral',
+          stress: this.moodData.stress || 'neutral',
+          anxiety: this.moodData.anxiety || 'neutral',
+          notes: this.moodData.notes || '',
+          triggers: this.moodData.triggers || [],
+          date: dateKey
+        };
+        const moodDataToSave = new MoodData(moodDataRaw);
+        console.log('[saveMoodData] Envoi mood normalisé:', moodDataToSave);
+        await dataService.saveMoodData(dateKey, moodDataToSave)
         this.showMoodModal = false
-        
-        // Afficher un message de succès
-        this.showSuccessMessage('Données d\'humeur enregistrées avec succès !')
-        
-        // Émettre l'événement pour que la navbar recharge les données
+        toast.success('Données d\'humeur enregistrées ou modifiées avec succès !');
+        // Rafraîchissement automatique des données
+        await this.refreshAllData?.();
         this.$emit('data-updated')
-        
       } catch (error) {
         console.error('Erreur lors de la sauvegarde des données d\'humeur:', error)
+        toast.error('Erreur lors de l\'enregistrement : ' + (error.message || error));
         this.error = {
           type: getErrorType(error),
           message: formatErrorMessage(error)
@@ -1626,14 +1626,17 @@ export default {
       this.error = null
       // Émettre l'événement pour que la navbar recharge les données
       this.$emit('data-updated')
-    }
+    },
+    async refreshAllData() {
+      // Recharge toutes les données (force la navbar à réémettre l'événement)
+      await this.loadDataForModals();
+    },
   },
   async mounted() {
-    // Gestion de la touche Escape pour fermer les modals
     document.addEventListener('keydown', this.handleEscapeKey)
-    
     // Les données seront reçues via l'événement date-changed de la navbar
     // Pas besoin de charger les données ici
+    this.$on?.('data-updated', this.refreshAllData)
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey)
