@@ -478,7 +478,7 @@ export default {
     },
     formatDateForAPI(date) {
       // Formater la date pour éviter les problèmes de timezone
-      // Note: Cette méthode est dépréciée, utilisez l'import depuis dateUtils à la place
+      // Note: Cette méthode et dépréciée, utilisez l'import depuis dateUtils à la place
       return formatDateForAPI(date);
     },
     getMoodEmoji(mood) {
