@@ -69,8 +69,8 @@
           <h3 class="text-sm font-medium text-gray-900 mb-2">Sélectionner une date</h3>
           <input
             type="date"
-            :value="selectedDate.toISOString().split('T')[0]"
-            :max="today.toISOString().split('T')[0]"
+            :value="formatDateForInput(selectedDate)"
+            :max="formatDateForInput(today)"
             @change="onDateChange"
             @input="onDateChange"
             @blur="onDateChange"
@@ -549,6 +549,10 @@ export default {
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const day = String(date.getDate()).padStart(2, '0')
       return `${year}-${month}-${day}`
+    },
+    formatDateForInput(date) {
+      // Identique à getDateKeyFromDate mais nom plus explicite pour les inputs
+      return this.getDateKeyFromDate(date)
     },
 
     /**

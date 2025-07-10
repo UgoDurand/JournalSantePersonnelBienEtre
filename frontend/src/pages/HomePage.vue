@@ -794,6 +794,7 @@
 import { dataService, getErrorType, formatErrorMessage } from '../services/index.js'
 import { MoodData } from '../models/MoodData.js'
 import { useToast } from 'vue-toastification'
+import { formatDateForAPI } from '../utils/dateUtils.js'
 
 export default {
   name: 'HomePage',
@@ -960,7 +961,7 @@ export default {
         this.isLoading = true
         this.error = null
         
-        const dateKey = this.selectedDate.toISOString().split('T')[0]
+        const dateKey = this.formatDateForAPI(this.selectedDate)
         const allData = await dataService.getAllDataForDate(dateKey)
         
         // Stocker les données pour les modales
@@ -1138,7 +1139,7 @@ export default {
     },
     openActivityModal() {
       if (this.individualData.activity.hasData) {
-        this.$router.push({ name: 'ActivityDetails', query: { date: this.selectedDate.toISOString().split('T')[0] } })
+        this.$router.push({ name: 'ActivityDetails', query: { date: this.formatDateForAPI(this.selectedDate) } })
         return
       }
       this.clearActivityErrors()
@@ -1151,7 +1152,7 @@ export default {
     },
     openMoodModal() {
       if (this.individualData.mood.hasData) {
-        this.$router.push({ name: 'Mood', query: { date: this.selectedDate.toISOString().split('T')[0] } })
+        this.$router.push({ name: 'Mood', query: { date: this.formatDateForAPI(this.selectedDate) } })
         return
       }
       this.clearMoodErrors()
@@ -1370,7 +1371,7 @@ export default {
         this.isSaving = true
         this.error = null
         
-        const dateKey = this.selectedDate.toISOString().split('T')[0]
+        const dateKey = this.formatDateForAPI(this.selectedDate)
         const sleepDataToSave = {
           ...this.sleepData,
           duration: this.sleepDuration
@@ -1413,7 +1414,7 @@ export default {
         this.isSaving = true
         this.error = null
         
-        const dateKey = this.selectedDate.toISOString().split('T')[0]
+        const dateKey = this.formatDateForAPI(this.selectedDate)
         console.log('🍽️ [saveDietData] Clé de date:', dateKey)
         
         await dataService.saveDietData(dateKey, this.dietData)
@@ -1447,7 +1448,7 @@ export default {
         this.isSaving = true
         this.error = null
         
-        const dateKey = this.selectedDate.toISOString().split('T')[0]
+        const dateKey = this.formatDateForAPI(this.selectedDate)
         
         // Utiliser l'estimation si pas de calories renseignées
         const finalData = {
@@ -1484,7 +1485,7 @@ export default {
       try {
         this.isSaving = true
         this.error = null
-        const dateKey = this.selectedDate.toISOString().split('T')[0]
+        const dateKey = this.formatDateForAPI(this.selectedDate)
         // On complète l'objet avec tous les champs attendus
         const moodDataRaw = {
           mood: this.moodData.mood || 'neutral',
@@ -1617,6 +1618,11 @@ export default {
      */
     closeError() {
       this.error = null
+    },
+    formatDateForAPI(date) {
+      // Formater la date pour éviter les problèmes de timezone
+      // Note: Cette méthode est dépréciée, utilisez l'import depuis dateUtils à la place
+      return formatDateForAPI(date);
     },
 
     /**

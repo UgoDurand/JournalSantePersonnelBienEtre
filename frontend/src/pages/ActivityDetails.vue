@@ -361,23 +361,20 @@
 <script>
 import { activityService } from '../services/index.js'
 import { useToast } from 'vue-toastification'
+import { formatDateForAPI } from '../utils/dateUtils.js'
 export default {
   name: 'ActivityDetails',
   props: {
     selectedDate: {
       type: Date,
       default() {
-        const dateStr = this?.$route?.query?.date;
-        if (dateStr) {
-          const d = new Date(dateStr + 'T00:00:00');
-          if (!isNaN(d.getTime())) return d;
-        }
         return new Date();
       }
     }
   },
   data() {
     return {
+      currentDate: new Date(), // Variable locale pour gérer la date
       showActivityModal: false,
       activityData: {
         name: '',
@@ -412,8 +409,46 @@ export default {
       return null;
     }
   },
+  watch: {
+    // Surveiller les changements de prop selectedDate
+    selectedDate: {
+      handler(newDate) {
+        if (newDate) {
+          this.currentDate = newDate;
+          this.loadTodayActivities();
+        }
+      },
+      immediate: false
+    },
+    // Surveiller les changements de route (query parameters)
+    '$route.query.date': {
+      handler(newDateStr) {
+        if (newDateStr) {
+          const d = new Date(newDateStr + 'T00:00:00');
+          if (!isNaN(d.getTime())) {
+            this.currentDate = d;
+            this.loadTodayActivities();
+          }
+        }
+      },
+      immediate: false
+    }
+  },
   async mounted() {
     this.isLoading = true;
+    
+    // Initialiser la date courante avec la prop ou la date par défaut
+    this.currentDate = this.selectedDate || new Date();
+    
+    // Gérer la date depuis les query parameters
+    const dateStr = this.$route?.query?.date;
+    if (dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        this.currentDate = d;
+      }
+    }
+    
     await this.loadTodayActivities();
     this.isLoading = false;
     document.addEventListener('keydown', this.handleEscapeKey);
@@ -426,40 +461,74 @@ export default {
       this.showActivityModal = false;
     },
     async loadTodayActivities() {
-      const today = new Date().toISOString().split('T')[0];
+      console.log('🔄 [ActivityDetails] loadTodayActivities appelé');
+      // Utilisation de la date sélectionnée ou aujourd'hui en évitant les problèmes de timezone
+      const targetDate = this.currentDate;
+      const today = formatDateForAPI(targetDate);
+      console.log('📅 [ActivityDetails] Date formatée pour loadTodayActivities:', today);
+      console.log('🎯 [ActivityDetails] currentDate utilisée:', targetDate);
+      
       try {
+        console.log('📞 [ActivityDetails] Appel activityService.getByDate avec:', today);
         this.todayActivities = await activityService.getByDate(today);
+        console.log('📋 [ActivityDetails] Activités récupérées:', this.todayActivities);
+        console.log('📊 [ActivityDetails] Nombre d\'activités:', this.todayActivities.length);
       } catch (e) {
+        console.error('❌ [ActivityDetails] Erreur lors du chargement des activités:', e);
         this.todayActivities = [];
       }
     },
     async refreshTodayActivities() {
+      console.log('🔄 [ActivityDetails] refreshTodayActivities appelé');
       await this.loadTodayActivities();
+      console.log('✅ [ActivityDetails] refreshTodayActivities terminé');
     },
     async saveActivityData() {
       const toast = useToast();
+      console.log('🏃 [ActivityDetails] saveActivityData appelé avec:', this.activityData);
+      
       if (!this.activityData.name || !this.activityData.duration) {
         toast.error('Veuillez remplir le type d\'activité et la durée');
         return;
       }
+      
       this.isSaving = true;
       try {
-        const dateKey = this.selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
+        // Correction du problème de décalage de date
+        const targetDate = this.currentDate;
+        const dateKey = formatDateForAPI(targetDate);
+        console.log('🏃 [ActivityDetails] Date formatée:', dateKey);
+        
         const finalData = {
           ...this.activityData,
           calories: this.activityData.calories || this.estimatedCalories,
           date: dateKey
         };
-        await activityService.create(finalData);
+        
+        console.log('🏃 [ActivityDetails] Données finales à envoyer:', finalData);
+        
+        const result = await activityService.create(finalData);
+        console.log('🏃 [ActivityDetails] Résultat de la création:', result);
+        
         this.showActivityModal = false;
         toast.success('Activité enregistrée avec succès !');
         this.activityData = { name: '', duration: '', time: '', intensity: 'moderate', calories: '' };
+        
+        console.log('🔄 [ActivityDetails] Avant refreshTodayActivities - currentDate:', this.currentDate);
+        console.log('🔄 [ActivityDetails] Avant refreshTodayActivities - dateKey utilisée:', dateKey);
+        
         await this.refreshTodayActivities();
       } catch (error) {
+        console.error('🏃 [ActivityDetails] Erreur lors de l\'enregistrement:', error);
         toast.error('Erreur lors de l\'enregistrement : ' + (error.message || error));
       } finally {
         this.isSaving = false;
       }
+    },
+    formatDateForAPI(date) {
+      // Formater la date pour éviter les problèmes de timezone
+      // Note: Cette méthode est dépréciée, utilisez l'import depuis dateUtils à la place
+      return formatDateForAPI(date);
     },
     handleEscapeKey(event) {
       if (event.key === 'Escape' && this.showActivityModal) {

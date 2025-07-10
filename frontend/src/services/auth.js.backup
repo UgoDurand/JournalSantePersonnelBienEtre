@@ -176,19 +176,10 @@ class AuthService {
       config.headers['Authorization'] = `Bearer ${this.token}`
     }
 
-    console.log('🌐 [AuthService] Appel API:', url, config)
-
     const response = await fetch(url, config)
-
-    console.log('📡 [AuthService] Réponse statut:', response.status, response.statusText)
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Ne pas déconnecter automatiquement en mode dev
-        if (this.user && this.user.isDevMode) {
-          console.warn('🚨 [DevMode] Erreur 401 ignorée en mode développement')
-          throw new Error('Erreur 401 - Authentification requise (mode dev)')
-        }
         this.logout()
         throw new Error('Session expirée, veuillez vous reconnecter')
       }
@@ -245,45 +236,6 @@ class AuthService {
    */
   async getAuthInfo() {
     return await this.apiCall('/auth/info')
-  }
-
-  /**
-   * 🛠️ MODE DÉVELOPPEMENT UNIQUEMENT
-   * Simuler une authentification pour tester les fonctionnalités
-   */
-  enableDevMode() {
-    console.warn('🚨 MODE DÉVELOPPEMENT ACTIVÉ - Ne pas utiliser en production!')
-    
-    // Token de développement (pas valide côté serveur)
-    this.token = 'dev-token-' + Math.random().toString(36).substr(2, 9)
-    
-    // Utilisateur de développement
-    this.user = {
-      id: 1,
-      email: 'dev@test.com',
-      name: 'Développeur Test',
-      authenticated: true,
-      isDevMode: true
-    }
-    
-    // Stocker en localStorage pour persistance
-    localStorage.setItem('auth_token', this.token)
-    localStorage.setItem('auth_user', JSON.stringify(this.user))
-    
-    console.log('✅ Authentification de développement configurée')
-    console.log('👤 Utilisateur:', this.user)
-    
-    return true
-  }
-
-  /**
-   * Désactiver le mode développement
-   */
-  disableDevMode() {
-    if (this.user && this.user.isDevMode) {
-      this.logout()
-      console.log('🔒 Mode développement désactivé')
-    }
   }
 }
 

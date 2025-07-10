@@ -330,6 +330,8 @@
 
 <script>
 import { sleepService } from '../services/index.js'
+import { formatDateForAPI } from '../utils/dateUtils.js'
+
 export default {
   name: 'SleepDetails',
   data() {
@@ -387,7 +389,7 @@ export default {
       }
       this.isSaving = true;
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = formatDateForAPI(new Date());
         await sleepService.createOrUpdate(today, {
           ...this.sleepData,
           duration: this.sleepDuration

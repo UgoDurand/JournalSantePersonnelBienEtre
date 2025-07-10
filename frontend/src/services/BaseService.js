@@ -50,10 +50,22 @@ export class BaseService {
    * POST request
    */
   async post(endpoint, data = {}) {
-    return await this.apiCall(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    })
+    console.log('🚀 [BaseService] POST request vers:', endpoint)
+    console.log('📦 [BaseService] Données à envoyer:', data)
+    
+    try {
+      const response = await this.apiCall(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      })
+      
+      console.log('✅ [BaseService] Réponse POST reçue pour', endpoint, ':', response)
+      return response
+      
+    } catch (error) {
+      console.error('❌ [BaseService] Erreur POST sur', endpoint, ':', error)
+      throw error
+    }
   }
 
   /**

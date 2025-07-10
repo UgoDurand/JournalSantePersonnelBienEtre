@@ -346,23 +346,20 @@
 import { moodService } from '../services/index.js'
 import { MoodData } from '../models/MoodData.js'
 import { useToast } from 'vue-toastification'
+import { formatDateForAPI } from '../utils/dateUtils.js'
 export default {
   name: 'MoodPage',
   props: {
     selectedDate: {
       type: Date,
       default() {
-        const dateStr = this?.$route?.query?.date;
-        if (dateStr) {
-          const d = new Date(dateStr + 'T00:00:00');
-          if (!isNaN(d.getTime())) return d;
-        }
         return new Date();
       }
     }
   },
   data() {
     return {
+      currentDate: new Date(), // Variable locale pour gérer la date
       showMoodModal: false,
       moodData: {
         mood: 'Good',
@@ -393,7 +390,9 @@ export default {
   methods: {
     async loadCurrentMoodData() {
       // Charge l'humeur du jour depuis le backend
-      const today = new Date().toISOString().split('T')[0];
+      // Utilisation de la date sélectionnée ou aujourd'hui en évitant les problèmes de timezone
+      const targetDate = this.currentDate;
+      const today = formatDateForAPI(targetDate);
       try {
         const mood = await moodService.getByDate(today);
         if (mood) {
@@ -434,7 +433,9 @@ export default {
       this.selectedEnergy = this.moodData.energy;
       this.isSaving = true;
       try {
-        const dateKey = this.selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
+        // Correction du problème de décalage de date
+        const targetDate = this.currentDate;
+        const dateKey = formatDateForAPI(targetDate);
         // On complète l'objet avec tous les champs attendus, y compris l'id
         const moodDataRaw = {
           id: this.moodData.id, // <-- Ajoute l'id ici si présent
@@ -474,6 +475,11 @@ export default {
     async refreshAllData() {
       // Recharge toutes les données (à adapter selon ta logique)
       await this.loadAllData?.();
+    },
+    formatDateForAPI(date) {
+      // Formater la date pour éviter les problèmes de timezone
+      // Note: Cette méthode est dépréciée, utilisez l'import depuis dateUtils à la place
+      return formatDateForAPI(date);
     },
     getMoodEmoji(mood) {
       const moodOption = this.moodOptions.find(option => option.value === mood);
@@ -526,6 +532,19 @@ export default {
   },
   async mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
+    
+    // Initialiser la date courante avec la prop ou la date par défaut
+    this.currentDate = this.selectedDate || new Date();
+    
+    // Gérer la date depuis les query parameters
+    const dateStr = this.$route?.query?.date;
+    if (dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        this.currentDate = d;
+      }
+    }
+    
     this.isLoading = true;
     await this.loadCurrentMoodData();
     this.isLoading = false;

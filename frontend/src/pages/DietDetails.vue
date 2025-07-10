@@ -371,6 +371,8 @@
 
 <script>
 import { dietService } from '../services/index.js'
+import { formatDateForAPI } from '../utils/dateUtils.js'
+
 export default {
   name: 'DietDetails',
   data() {
@@ -417,7 +419,7 @@ export default {
       this.isSaving = true;
       try {
         // On suppose que la date est aujourd'hui (à adapter si besoin)
-        const today = new Date().toISOString().split('T')[0];
+        const today = formatDateForAPI(new Date());
         await dietService.createOrUpdate(today, this.dietData);
         this.showDietModal = false;
         alert('Données d\'alimentation mises à jour avec succès !');
