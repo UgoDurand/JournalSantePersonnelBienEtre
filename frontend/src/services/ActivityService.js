@@ -14,15 +14,10 @@ export class ActivityService extends BaseService {
   async getByDate(date) {
     try {
       const response = await this.get('/activity', { date })
-      
-      if (!response || !response.data) {
+      if (!response || !Array.isArray(response)) {
         return []
       }
-      
-      // S'assurer que response.data est un tableau
-      const activityData = Array.isArray(response.data) ? response.data : [response.data]
-      
-      return activityData.map(item => ActivityData.fromAPI(item))
+      return response.map(item => ActivityData.fromAPI(item))
     } catch (error) {
       if (error.message.includes('404')) {
         return []
@@ -82,7 +77,7 @@ export class ActivityService extends BaseService {
     const activityModel = new ActivityData(activityData)
     
     const response = await this.post('/activity', activityModel.toAPI())
-    return ActivityData.fromAPI(response.data)
+    return ActivityData.fromAPI(response)
   }
 
   /**

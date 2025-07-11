@@ -44,6 +44,9 @@ public class Activity {
     @Column(name = "notes")
     private String notes;
     
+    @Column(name = "time")
+    private String time; // format HH:mm
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -100,6 +103,9 @@ public class Activity {
     
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    
+    public String getTime() { return time; }
+    public void setTime(String time) { this.time = time; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

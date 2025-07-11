@@ -6,11 +6,11 @@ export class ActivityData {
   constructor(data = {}) {
     this.id = data.id || null
     this.date = data.date || new Date().toISOString().split('T')[0]
-    this.name = data.name || ''
+    this.activityType = data.activityType || ''
     this.duration = data.duration || 0
     this.time = data.time || '08:00'
     this.intensity = data.intensity || 'moderate'
-    this.calories = data.calories || 0
+    this.calories = (data.calories !== undefined ? data.calories : (data.caloriesBurned !== undefined ? data.caloriesBurned : 0))
     this.distance = data.distance || 0
     this.heartRate = data.heartRate || null
     this.notes = data.notes || ''
@@ -143,12 +143,12 @@ export class ActivityData {
   get hasRealData() {
     // Si pas de données originales, utiliser les valeurs actuelles
     if (!this._originalApiData) {
-      return !!(this.name && this.name.trim() && this.duration > 0)
+      return !!(this.activityType && this.activityType.trim() && this.duration > 0)
     }
     
     // Vérifier les données originales de l'API
     const original = this._originalApiData
-    return !!(original.name && original.name.trim() && original.duration > 0)
+    return !!(original.activityType && original.activityType.trim() && original.duration > 0)
   }
 
   /**
@@ -158,6 +158,7 @@ export class ActivityData {
    */
   static fromAPI(apiData) {
     const instance = new ActivityData(apiData)
+    instance.calories = (apiData.calories !== undefined ? apiData.calories : (apiData.caloriesBurned !== undefined ? apiData.caloriesBurned : 0))
     // Stocker les données originales pour vérifier si elles sont réellement renseignées
     instance._originalApiData = apiData
     return instance
@@ -170,11 +171,11 @@ export class ActivityData {
   toAPI() {
     return {
       date: this.date,
-      name: this.name,
+      activityType: this.activityType,
       duration: this.duration,
       time: this.time,
       intensity: this.intensity,
-      calories: this.calories,
+      caloriesBurned: this.calories,
       distance: this.distance,
       heartRate: this.heartRate,
       notes: this.notes
@@ -192,7 +193,7 @@ export class ActivityData {
       errors.push('La date est requise')
     }
 
-    if (!this.name || this.name.trim() === '') {
+    if (!this.activityType || this.activityType.trim() === '') {
       errors.push('Le nom de l\'activité est requis')
     }
 

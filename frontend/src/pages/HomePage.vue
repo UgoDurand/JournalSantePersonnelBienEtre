@@ -191,22 +191,25 @@
                 </div>
               </div>
             </div>
-            
             <div class="p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-red-50">
-              <div v-if="individualData.activity.hasData" class="text-center">
-                <div class="text-2xl sm:text-3xl font-bold text-orange-600 mb-1">{{ individualData.activity.formattedData || '-' }}</div>
-                <div class="text-sm text-orange-700 mb-2">Temps d'activité</div>
-                <span class="text-xs text-orange-600 hover:text-orange-800 font-medium">
-                  Cliquez pour voir les détails
-                </span>
-              </div>
-              <div v-else class="flex items-center justify-between">
-                <span class="text-orange-600 font-medium text-sm sm:text-base">Cliquez pour commencer</span>
-                <div class="flex items-center space-x-1">
-                  <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-300 rounded-full animate-pulse"></div>
-                  <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-400 rounded-full animate-pulse delay-75"></div>
-                  <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full animate-pulse delay-150"></div>
+              <div class="text-center">
+                <div v-if="individualData.activity.hasData">
+                  <div class="text-2xl sm:text-3xl font-bold text-orange-600 mb-1">{{ individualData.activity.formattedData || '-' }}</div>
+                  <div class="text-sm text-orange-700 mb-2">Temps d'activité</div>
+                  <span class="text-xs text-orange-600 hover:text-orange-800 font-medium">
+                    Cliquez pour voir les détails
+                  </span>
                 </div>
+                <div v-else class="flex items-center justify-center gap-2">
+                  <span class="text-orange-600 font-medium text-sm sm:text-base">Cliquez pour commencer</span>
+                  <div class="flex items-center space-x-1">
+                    <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-300 rounded-full animate-pulse"></div>
+                    <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-400 rounded-full animate-pulse delay-75"></div>
+                    <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full animate-pulse delay-150"></div>
+                  </div>
+                </div>
+                <!-- DEBUG: Affichage temporaire de la valeur de hasData -->
+                <div style="font-size:10px;color:#888;">hasData: {{ individualData.activity.hasData }}</div>
               </div>
             </div>
           </div>
@@ -613,16 +616,16 @@
               Type d'activité <span class="text-red-500">*</span>
             </label>
             <input 
-              v-model="activityData.name" 
+              v-model="activityData.activityType" 
               type="text" 
               placeholder="Course à pied, natation, vélo..." 
               :class="[
                 'w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500',
-                activityErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                activityErrors.activityType ? 'border-red-500 bg-red-50' : 'border-gray-300'
               ]"
               @input="clearActivityErrors"
             >
-            <p v-if="activityErrors.name" class="text-red-500 text-xs mt-1">{{ activityErrors.name }}</p>
+            <p v-if="activityErrors.activityType" class="text-red-500 text-xs mt-1">{{ activityErrors.activityType }}</p>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -851,7 +854,7 @@ export default {
         fats: ''
       },
       activityData: {
-        name: '',
+        activityType: '',
         duration: '',
         time: '',
         intensity: 'moderate',
@@ -1020,7 +1023,7 @@ export default {
       if (allData.activity && allData.activity.length > 0) {
         const firstActivity = allData.activity[0]
         this.activityData = {
-          name: firstActivity.name || '',
+          activityType: firstActivity.activityType || '',
           duration: firstActivity.duration || '',
           time: firstActivity.time || '',
           intensity: firstActivity.intensity || 'moderate',
@@ -1288,10 +1291,10 @@ export default {
       const errors = {}
       
       // Validation du nom obligatoire
-      if (!this.activityData.name || !this.activityData.name.trim()) {
-        errors.name = 'Le type d\'activité est obligatoire'
-      } else if (this.activityData.name.trim().length < 2) {
-        errors.name = 'Le type d\'activité doit contenir au moins 2 caractères'
+      if (!this.activityData.activityType || !this.activityData.activityType.trim()) {
+        errors.activityType = 'Le type d\'activité est obligatoire'
+      } else if (this.activityData.activityType.trim().length < 2) {
+        errors.activityType = 'Le type d\'activité doit contenir au moins 2 caractères'
       }
       
       // Validation de la durée obligatoire
@@ -1439,33 +1442,26 @@ export default {
       }
     },
     async saveActivityData() {
+      const toast = useToast();
       // Validation complète
       if (!this.validateActivityData()) {
         return // Les erreurs sont déjà stockées dans activityErrors
       }
-      
       try {
         this.isSaving = true
         this.error = null
-        
         const dateKey = this.formatDateForAPI(this.selectedDate)
-        
         // Utiliser l'estimation si pas de calories renseignées
         const finalData = {
           ...this.activityData,
           calories: this.activityData.calories || this.estimatedCalories
         }
-        
         await dataService.saveActivityData(dateKey, finalData)
-        
         this.showActivityModal = false
-        
         // Afficher un message de succès
-        this.showSuccessMessage('Données d\'activité enregistrées avec succès !')
-        
+        toast.success('Activité enregistrée avec succès !');
         // Émettre l'événement pour que la navbar recharge les données
         this.$emit('data-updated')
-        
       } catch (error) {
         console.error('Erreur lors de la sauvegarde des données d\'activité:', error)
         this.error = {
@@ -1595,7 +1591,7 @@ export default {
      */
     resetActivityForm() {
       this.activityData = {
-        name: '',
+        activityType: '',
         duration: '',
         time: '',
         intensity: 'moderate',

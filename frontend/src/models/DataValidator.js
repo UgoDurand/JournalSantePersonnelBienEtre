@@ -113,8 +113,8 @@ export class DataValidator {
       errors.push('La date doit être au format YYYY-MM-DD')
     }
 
-    if (!data.name || data.name.trim() === '') {
-      errors.push('Le nom de l\'activité est requis')
+    if (!data.activityType || data.activityType.trim() === '') {
+      errors.push('Le type d\'activité est requis')
     }
 
     if (!data.duration || data.duration <= 0) {

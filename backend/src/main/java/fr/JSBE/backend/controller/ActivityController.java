@@ -82,6 +82,7 @@ public class ActivityController {
             
             // Pour les activités, on peut avoir plusieurs activités par jour
             activityData.setUser(user);
+            // S'assurer que le champ time est bien pris en compte (déjà dans l'objet reçu)
             Activity saved = activityRepository.save(activityData);
             return ResponseEntity.ok(saved);
             
@@ -116,7 +117,7 @@ public class ActivityController {
             existing.setCaloriesBurned(activityData.getCaloriesBurned());
             existing.setDistance(activityData.getDistance());
             existing.setNotes(activityData.getNotes());
-            
+            existing.setTime(activityData.getTime()); // Ajout du champ time
             Activity saved = activityRepository.save(existing);
             return ResponseEntity.ok(saved);
             
