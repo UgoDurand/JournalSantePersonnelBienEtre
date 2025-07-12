@@ -115,24 +115,18 @@
         >
           Hier
         </button>
-        <button
-          @click="goToThisWeek"
-          @touchstart="goToThisWeek"
-          :class="activeTimeButton === 'thisWeek' 
-            ? 'px-2 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
-            : 'px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors'"
-        >
-          Cette semaine
-        </button>
-        <button
-          @click="goToLastWeek"
-          @touchstart="goToLastWeek"
-          :class="activeTimeButton === 'lastWeek' 
-            ? 'px-2 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
-            : 'px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors'"
-        >
-          Semaine passée
-        </button>
+        <div class="col-span-2 flex justify-center">
+          <button
+            @click="goToThisWeek"
+            @touchstart="goToThisWeek"
+            class="w-1/2"
+            :class="activeTimeButton === 'thisWeek' 
+              ? 'px-2 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
+              : 'px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors'"
+          >
+            Cette semaine
+          </button>
+        </div>
       </div>
     </div>
 
@@ -181,50 +175,43 @@
     <div v-if="!collapsed" class="mb-2">
       <h3 class="text-xs font-medium text-gray-400 mb-2">STATISTIQUES</h3>
       <div class="space-y-2">
-        <!-- Streak -->
-        <div class="flex items-center justify-between p-2 bg-green-50 rounded-lg">
-          <div class="flex items-center space-x-2">
-            <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-              <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-sm font-medium text-green-900">Streak</p>
-              <p class="text-xs text-green-700">{{ streakCount }} jours</p>
+        <!-- Streak motivant -->
+        <div class="flex items-center p-3 bg-green-50 rounded-lg">
+          <span class="text-2xl mr-3">🔥</span>
+          <div>
+            <div class="font-semibold text-green-900">Série : {{ streakCount }} jours</div>
+            <div class="text-xs text-green-700">
+              {{ streakCount >= 7 ? 'Incroyable régularité !' : (streakCount >= 3 ? 'Continue comme ça !' : 'Commence ta série !') }}
             </div>
           </div>
         </div>
 
-        <!-- Score du jour -->
-        <div class="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
-          <div class="flex items-center space-x-2">
-            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-              <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
-              </svg>
+        <!-- Score du jour avec jauge -->
+        <div class="flex items-center p-3 bg-blue-50 rounded-lg">
+          <span class="text-2xl mr-3">⚡</span>
+          <div class="flex-1">
+            <div class="font-semibold text-blue-900">Score du jour</div>
+            <div class="w-full bg-blue-100 rounded h-2 my-1">
+              <div class="bg-blue-500 h-2 rounded" :style="{ width: dailyScore + '%' }"></div>
             </div>
-            <div>
-              <p class="text-sm font-medium text-blue-900">Score</p>
-              <p class="text-xs text-blue-700">{{ dailyScore }}%</p>
+            <div class="text-xs text-blue-700">{{ dailyScore }}% - 
+              {{ dailyScore >= 80 ? 'Excellent !' : dailyScore >= 50 ? 'En progrès' : 'Peut mieux faire' }}
             </div>
           </div>
         </div>
 
-        <!-- Objectifs -->
-        <div class="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
-          <div class="flex items-center space-x-2">
-            <div class="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-              <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-sm font-medium text-orange-900">Objectifs</p>
-              <p class="text-xs text-orange-700">{{ weeklyGoals.completed }}/{{ weeklyGoals.total }}</p>
+        <!-- Objectifs hebdo -->
+        <div class="flex items-center p-3 bg-orange-50 rounded-lg">
+          <span class="text-2xl mr-3">🎯</span>
+          <div>
+            <div class="font-semibold text-orange-900">Objectifs semaine</div>
+            <div class="text-xs text-orange-700">
+              {{ weeklyGoals.completed }}/{{ weeklyGoals.total }} atteints<br>
+              {{ weeklyGoals.completed == weeklyGoals.total ? 'Objectif hebdo validé !' : weeklyGoals.completed >= 5 ? 'Presque au bout !' : 'Tu peux le faire !' }}
             </div>
           </div>
         </div>
+
       </div>
     </div>
 

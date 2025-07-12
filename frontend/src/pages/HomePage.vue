@@ -117,48 +117,24 @@
         </div>
 
         <!-- Diet Card -->
-        <div class="group cursor-pointer transform transition-all duration-300 hover:scale-105 active:scale-95" @click="openDietModal">
-          <div class="bg-white rounded-xl shadow-md border-2 border-transparent group-hover:border-green-300 group-active:border-green-400 overflow-hidden">
+        <div class="pointer-events-none opacity-60 select-none">
+          <div class="bg-white rounded-xl shadow-md border-2 border-transparent overflow-hidden">
             <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-3 sm:p-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2 sm:space-x-3">
-                  <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 class="text-white font-semibold text-base sm:text-lg">Alimentation</h3>
-                    <p class="text-green-100 text-xs sm:text-sm" v-if="individualData.diet.hasData">Votre nutrition</p>
-                    <p class="text-green-100 text-xs sm:text-sm" v-else>Suivez votre nutrition</p>
-                  </div>
+              <div class="flex items-center space-x-2 sm:space-x-3">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
                 </div>
-                <div class="bg-white/20 rounded-full p-1.5 sm:p-2">
-                  <svg v-if="individualData.diet.hasData" class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  <svg v-else class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
+                <div>
+                  <h3 class="text-white font-semibold text-base sm:text-lg">Alimentation</h3>
+                  <p class="text-green-100 text-xs sm:text-sm">Fonctionnalité arrivant prochainement</p>
                 </div>
               </div>
             </div>
-            
             <div class="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50">
-              <div v-if="individualData.diet.hasData" class="text-center">
-                <div class="text-2xl sm:text-3xl font-bold text-green-600 mb-1">{{ individualData.diet.formattedData || '-' }}</div>
-                <div class="text-sm text-green-700 mb-2">Calories quotidiennes</div>
-                <span class="text-xs text-green-600 hover:text-green-800 font-medium">
-                  Cliquez pour voir les détails
-                </span>
-              </div>
-              <div v-else class="flex items-center justify-between">
-                <span class="text-green-600 font-medium text-sm sm:text-base">Cliquez pour commencer</span>
-                <div class="flex items-center space-x-1">
-                  <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-300 rounded-full animate-pulse"></div>
-                  <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full animate-pulse delay-75"></div>
-                  <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse delay-150"></div>
-                </div>
+              <div class="flex items-center justify-center">
+                <span class="text-green-600 font-medium text-sm sm:text-base">Fonctionnalité en cours de développement</span>
               </div>
             </div>
           </div>
@@ -194,7 +170,9 @@
             <div class="p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-red-50">
               <div class="text-center">
                 <div v-if="individualData.activity.hasData">
-                  <div class="text-2xl sm:text-3xl font-bold text-orange-600 mb-1">{{ individualData.activity.formattedData || '-' }}</div>
+                  <div class="text-2xl sm:text-3xl font-bold text-orange-600 mb-1">
+                    {{ individualData.activity.formattedData || '-' }} <span class="text-base font-normal">min</span>
+                  </div>
                   <div class="text-sm text-orange-700 mb-2">Temps d'activité</div>
                   <span class="text-xs text-orange-600 hover:text-orange-800 font-medium">
                     Cliquez pour voir les détails
@@ -208,8 +186,6 @@
                     <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full animate-pulse delay-150"></div>
                   </div>
                 </div>
-                <!-- DEBUG: Affichage temporaire de la valeur de hasData -->
-                <div style="font-size:10px;color:#888;">hasData: {{ individualData.activity.hasData }}</div>
               </div>
             </div>
           </div>
@@ -245,8 +221,10 @@
             
             <div class="p-3 sm:p-4 bg-gradient-to-r from-pink-50 to-purple-50">
               <div v-if="individualData.mood.hasData" class="text-center">
-                <div class="text-2xl sm:text-3xl font-bold text-pink-600 mb-1">{{ individualData.mood.formattedData || '-' }}</div>
-                <div class="text-sm text-pink-700 mb-2">Humeur du jour</div>
+                <div class="flex flex-col items-center justify-center mb-1">
+                  <div class="text-4xl mb-2">🧠</div>
+                  <div class="text-lg text-pink-700 font-semibold">Consultez le détail de votre humeur du jour</div>
+                </div>
                 <span class="text-xs text-pink-600 hover:text-pink-800 font-medium">
                   Cliquez pour voir les détails
                 </span>
@@ -273,8 +251,7 @@
           <span class="text-yellow-800 font-semibold">Conseil du jour</span>
         </div>
         <p class="text-yellow-700">
-          Prendre soin de soi commence par de petites actions quotidiennes. 
-          Chaque donnée que vous enregistrez vous rapproche de vos objectifs bien-être ! 🌟
+          {{ conseilAleatoire }}
         </p>
       </div>
     </div>
@@ -794,7 +771,7 @@
 </template>
 
 <script>
-import { dataService, getErrorType, formatErrorMessage } from '../services/index.js'
+import { dataService, getErrorType, formatErrorMessage, moodService } from '../services/index.js'
 import { MoodData } from '../models/MoodData.js'
 import { useToast } from 'vue-toastification'
 import { formatDateForAPI } from '../utils/dateUtils.js'
@@ -889,7 +866,20 @@ export default {
         { value: 'neutral', emoji: '😐', label: 'Neutre' },
         { value: 'fit', emoji: '💪', label: 'En forme' },
         { value: 'energetic', emoji: '⚡', label: 'Énergique' }
-      ]
+      ],
+      conseilsDuJour: [
+        "💧 N'oublie pas de boire de l'eau ! Ton corps en a besoin.",
+        "🏃‍♂️ Une petite marche de 10 minutes peut faire des miracles.",
+        "😴 Dors bien ce soir, ton corps se régénère pendant le sommeil.",
+        "🍎 Mange un fruit frais, c'est bon pour la santé !",
+        "🧘‍♀️ Prends 5 minutes pour respirer profondément.",
+        "📱 Fais une pause écran, tes yeux te remercieront.",
+        "💪 Note 3 choses positives de ta journée.",
+        "🌞 Profite du soleil si possible, la vitamine D c'est important !",
+        "🎵 Écoute ta musique préférée, ça booste le moral.",
+        "🤗 Envoie un message sympa à quelqu'un que tu aimes."
+      ],
+      conseilAleatoire: ""
     }
   },
   computed: {
@@ -1460,7 +1450,7 @@ export default {
         this.showActivityModal = false
         // Afficher un message de succès
         toast.success('Activité enregistrée avec succès !');
-        // Émettre l'événement pour que la navbar recharge les données
+        // Émettre l'événement pour que la navbar recharge les données (et donc la HomePage)
         this.$emit('data-updated')
       } catch (error) {
         console.error('Erreur lors de la sauvegarde des données d\'activité:', error)
@@ -1474,16 +1464,14 @@ export default {
     },
     async saveMoodData() {
       const toast = useToast();
-      // Validation complète
-      if (!this.validateMoodData()) {
-        return // Les erreurs sont déjà stockées dans moodErrors
-      }
+      this.selectedMood = this.moodData.mood;
+      this.selectedEnergy = this.moodData.energy;
+      this.isSaving = true;
       try {
-        this.isSaving = true
-        this.error = null
-        const dateKey = this.formatDateForAPI(this.selectedDate)
-        // On complète l'objet avec tous les champs attendus
+        const dateKey = this.formatDateForAPI(this.selectedDate);
+        // On complète l'objet avec tous les champs attendus, y compris l'id
         const moodDataRaw = {
+          id: this.moodData.id, // <-- Ajoute l'id ici si présent
           mood: this.moodData.mood || 'neutral',
           energy: this.moodData.energy || 'neutral',
           stress: this.moodData.stress || 'neutral',
@@ -1493,22 +1481,27 @@ export default {
           date: dateKey
         };
         const moodDataToSave = new MoodData(moodDataRaw);
-        console.log('[saveMoodData] Envoi mood normalisé:', moodDataToSave);
-        await dataService.saveMoodData(dateKey, moodDataToSave)
-        this.showMoodModal = false
-        toast.success('Données d\'humeur enregistrées ou modifiées avec succès !');
-        // Rafraîchissement automatique des données
-        await this.refreshAllData?.();
-        this.$emit('data-updated')
-      } catch (error) {
-        console.error('Erreur lors de la sauvegarde des données d\'humeur:', error)
-        toast.error('Erreur lors de l\'enregistrement : ' + (error.message || error));
-        this.error = {
-          type: getErrorType(error),
-          message: formatErrorMessage(error)
+
+        let result;
+        if (moodDataToSave.id) {
+          // Update
+          result = await moodService.update(moodDataToSave.id, moodDataToSave);
+        } else {
+          // Create
+          result = await moodService.create(moodDataToSave);
         }
+
+        if (!result || typeof result !== 'object' || !('id' in result)) {
+          throw new Error('La réponse du backend est invalide ou vide.');
+        }
+        this.showMoodModal = false;
+        toast.success('Données d\'humeur enregistrées ou modifiées avec succès !');
+        this.$emit('data-updated');
+      } catch (error) {
+        console.error('[saveMoodData] Erreur lors de l\'enregistrement mood:', error);
+        toast.error('Erreur lors de l\'enregistrement : ' + (error.message || error));
       } finally {
-        this.isSaving = false
+        this.isSaving = false;
       }
     },
     addWater() {
@@ -1622,6 +1615,26 @@ export default {
     },
 
     /**
+     * Générer le conseil du jour basé sur la date
+     */
+    generateConseilDuJour() {
+      const today = new Date()
+      const dateString = today.toISOString().split('T')[0] // Format YYYY-MM-DD
+      
+      // Créer un hash simple basé sur la date
+      let hash = 0
+      for (let i = 0; i < dateString.length; i++) {
+        const char = dateString.charCodeAt(i)
+        hash = ((hash << 5) - hash) + char
+        hash = hash & hash // Convert to 32bit integer
+      }
+      
+      // Utiliser le hash pour sélectionner un conseil
+      const index = Math.abs(hash) % this.conseilsDuJour.length
+      this.conseilAleatoire = this.conseilsDuJour[index]
+    },
+
+    /**
      * Retry en cas d'erreur
      */
     async retryOperation() {
@@ -1633,12 +1646,35 @@ export default {
       // Recharge toutes les données (force la navbar à réémettre l'événement)
       await this.loadDataForModals();
     },
+    getMoodNote(mood) {
+      // mood est déjà formaté (voir MoodData.fromAPI)
+      // On utilise la logique du modèle : moodScore + energyScore
+      if (!mood) return '-';
+      // Si mood est déjà une instance de MoodData
+      if (mood instanceof MoodData) {
+        return mood.moodScore + mood.energyScore;
+      }
+      // Sinon, on tente de reconstituer
+      const scores = {
+        'awful': 2, 'bad': 4, 'neutral': 6, 'good': 8, 'great': 10,
+        'sick': 1, 'tired': 3, 'neutral': 5, 'fit': 8, 'energetic': 10
+      };
+      const moodScore = scores[(mood.mood || '').toLowerCase()] || 6;
+      const energyScore = scores[(mood.energy || '').toLowerCase()] || 5;
+      return moodScore + energyScore;
+    },
+    reloadIndividualData() {
+      // Recharge les données individuelles (mood, activity, etc.) après modification
+      this.loadDataForModals();
+    },
   },
   async mounted() {
     document.addEventListener('keydown', this.handleEscapeKey)
     // Les données seront reçues via l'événement date-changed de la navbar
     // Pas besoin de charger les données ici
     this.$on?.('data-updated', this.refreshAllData)
+    // Générer le conseil du jour basé sur la date
+    this.generateConseilDuJour()
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey)

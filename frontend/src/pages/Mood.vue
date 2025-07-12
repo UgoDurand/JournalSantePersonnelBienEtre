@@ -25,8 +25,10 @@
               </div>
             </div>
             <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 max-w-md">
-              <p class="text-pink-100 text-sm mb-2">😊 État actuel</p>
-              <p class="text-white text-xl font-semibold">Humeur positive • Énergie élevée</p>
+              <p class="text-pink-100 text-sm mb-2">{{ getMoodEmoji(currentMoodData?.mood) }} État actuel</p>
+              <p class="text-white text-xl font-semibold">
+                {{ getEtatActuelMessage(currentMoodData) }}
+              </p>
             </div>
           </div>
           <button @click="openMoodModal" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-4 px-8 rounded-2xl border border-white/30 transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -46,7 +48,7 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
       </div>
       <div v-else>
-        <!-- État actuel -->
+        <!-- État actuel (dynamique) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-pink-100">
             <div class="flex items-center mb-6">
@@ -60,17 +62,18 @@
                 <p class="text-gray-600">État émotionnel actuel</p>
               </div>
             </div>
-            
-            <div class="text-center">
-              <div class="text-8xl mb-4 animate-pulse">{{ getMoodEmoji(selectedMood) }}</div>
-              <div class="text-3xl font-bold text-pink-600 mb-2">{{ selectedMood }}</div>
-              <div class="text-sm text-gray-500">Évaluée il y a 2 heures</div>
+            <div v-if="currentMoodData" class="text-center">
+              <div class="text-8xl mb-4 animate-pulse">{{ getMoodEmoji(currentMoodData.mood) }}</div>
+              <div class="text-3xl font-bold text-pink-600 mb-2">{{ currentMoodData.mood }}</div>
+              <div class="text-base text-gray-500 mb-2">Évaluée le {{ currentMoodData.updatedAt ? currentMoodData.updatedAt.split('T')[0] : '' }} à {{ currentMoodData.updatedAt ? currentMoodData.updatedAt.split('T')[1]?.slice(0,5) : '' }}</div>
               <div class="mt-4 bg-pink-50 rounded-2xl p-4">
-                <div class="text-sm text-pink-800">
-                  <span class="font-semibold">Score : {{ getMoodScore(selectedMood) }}/10</span> • {{ getMoodDescription(selectedMood) }}
+                <div class="text-base text-pink-800">
+                  <span v-if="currentMoodData.notes">{{ currentMoodData.notes }}</span>
+                  <span v-else>Aucune note enregistrée.</span>
                 </div>
               </div>
             </div>
+            <div v-else class="text-center text-gray-400 py-12">Aucune humeur enregistrée pour aujourd'hui.</div>
           </div>
 
           <div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-orange-100">
@@ -85,176 +88,47 @@
                 <p class="text-gray-600">Niveau de vitalité</p>
               </div>
             </div>
-            
-            <div class="text-center">
-              <div class="text-8xl mb-4 animate-bounce">{{ getEnergyEmoji(selectedEnergy) }}</div>
-              <div class="text-3xl font-bold text-orange-600 mb-2">{{ selectedEnergy }}</div>
-              <div class="text-sm text-gray-500">Évaluée il y a 2 heures</div>
+            <div v-if="currentMoodData" class="text-center">
+              <div class="text-8xl mb-4 animate-bounce">{{ getEnergyEmoji(currentMoodData.energy) }}</div>
+              <div class="text-3xl font-bold text-orange-600 mb-2">{{ currentMoodData.energy }}</div>
+              <div class="text-base text-gray-500 mb-2">Évaluée le {{ currentMoodData.updatedAt ? currentMoodData.updatedAt.split('T')[0] : '' }} à {{ currentMoodData.updatedAt ? currentMoodData.updatedAt.split('T')[1]?.slice(0,5) : '' }}</div>
               <div class="mt-4 bg-orange-50 rounded-2xl p-4">
-                <div class="text-sm text-orange-800">
-                  <span class="font-semibold">Score : {{ getEnergyScore(selectedEnergy) }}/10</span> • {{ getEnergyDescription(selectedEnergy) }}
+                <div class="text-base text-orange-800">
+                  <span v-if="currentMoodData.stress && currentMoodData.stress !== 'neutral'">Stress : {{ currentMoodData.stress }}</span>
+                  <span v-if="currentMoodData.anxiety && currentMoodData.anxiety !== 'neutral'"> | Anxiété : {{ currentMoodData.anxiety }}</span>
+                  <span v-if="(!currentMoodData.stress || currentMoodData.stress === 'neutral') && (!currentMoodData.anxiety || currentMoodData.anxiety === 'neutral')">Aucun stress ou anxiété particulier.</span>
                 </div>
               </div>
             </div>
+            <div v-else class="text-center text-gray-400 py-12">Aucune donnée d'énergie pour aujourd'hui.</div>
           </div>
         </div>
 
-        <!-- Tendances de la semaine -->
-        <div class="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-          <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-            <span class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </span>
-            Évolution des 7 Derniers Jours
-          </h2>
-
-          <div class="grid grid-cols-7 gap-4 mb-6">
-            <div v-for="day in weeklyMoods" :key="day.day" class="text-center">
-              <div class="text-sm font-medium text-gray-600 mb-2">{{ day.day }}</div>
-              <div class="bg-gradient-to-t from-pink-200 to-purple-200 rounded-2xl p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div class="text-4xl mb-2">{{ day.emoji }}</div>
-                <div class="text-xs text-gray-700 font-medium">{{ day.mood }}</div>
-                <div class="text-xs text-gray-500 mt-1">{{ day.energy }}/10</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-pink-50 rounded-2xl p-6 text-center">
-              <div class="text-3xl font-bold text-pink-600 mb-1">-</div>
-              <div class="text-sm text-gray-600">Humeur moyenne</div>
-            </div>
-            <div class="bg-orange-50 rounded-2xl p-6 text-center">
-              <div class="text-3xl font-bold text-orange-600 mb-1">-</div>
-              <div class="text-sm text-gray-600">Énergie moyenne</div>
-            </div>
-            <div class="bg-green-50 rounded-2xl p-6 text-center">
-              <div class="text-3xl font-bold text-green-600 mb-1">86%</div>
-              <div class="text-sm text-gray-600">Jours positifs</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Facteurs d'influence -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-              <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+        <!-- Conseil dynamique selon humeur/énergie -->
+        <div v-if="currentMoodData" class="mt-12 flex justify-center">
+          <div class="bg-gradient-to-r from-pink-100 to-orange-100 rounded-3xl shadow-lg p-8 max-w-xl w-full">
+            <h3 class="text-2xl font-bold text-pink-700 mb-4 flex items-center">
+              <span class="mr-2">💡</span> Conseil du jour
+            </h3>
+            <div class="text-2xl font-semibold text-gray-800 leading-relaxed py-4">
+              <span v-if="isMood('awful') || isEnergy('sick')">
+                Prends soin de toi aujourd'hui. Accorde-toi du repos, hydrate-toi et n'hésite pas à demander du soutien à un proche. Un petit pas suffit pour aller mieux.
               </span>
-              Facteurs Positifs
-            </h2>
-
-            <div class="space-y-4">
-              <div class="flex items-center justify-between p-4 bg-green-50 rounded-2xl border-l-4 border-green-400">
-                <div class="flex items-center">
-                  <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-green-800">Excellent sommeil</div>
-                    <div class="text-sm text-green-600">8h15 de repos réparateur</div>
-                  </div>
-                </div>
-                <div class="text-green-600 font-bold">+2</div>
-              </div>
-
-              <div class="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border-l-4 border-blue-400">
-                <div class="flex items-center">
-                  <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-blue-800">Activité physique</div>
-                    <div class="text-sm text-blue-600">Aucune activité renseignée</div>
-                  </div>
-                </div>
-                <div class="text-blue-600 font-bold">+3</div>
-              </div>
-
-              <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-2xl border-l-4 border-yellow-400">
-                <div class="flex items-center">
-                  <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-yellow-800">Beau temps</div>
-                    <div class="text-sm text-yellow-600">Journée ensoleillée</div>
-                  </div>
-                </div>
-                <div class="text-yellow-600 font-bold">+1</div>
-              </div>
-
-              <div class="flex items-center justify-between p-4 bg-purple-50 rounded-2xl border-l-4 border-purple-400">
-                <div class="flex items-center">
-                  <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-purple-800">Moments sociaux</div>
-                    <div class="text-sm text-purple-600">Temps avec les proches</div>
-                  </div>
-                </div>
-                <div class="text-purple-600 font-bold">+2</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Conseils bien-être -->
-          <div class="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-              <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
-                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+              <span v-else-if="isMood('bad') || isEnergy('tired')">
+                Journée difficile ? Essaie de faire une pause, de respirer profondément ou de sortir prendre l'air. Même une courte marche peut aider à retrouver un peu d'énergie.
               </span>
-              Conseils Bien-être
-            </h2>
-
-            <div class="space-y-4">
-              <div class="p-4 bg-indigo-50 rounded-2xl">
-                <h3 class="font-semibold text-indigo-800 mb-2 flex items-center">
-                  <span class="text-lg mr-2">🧘‍♀️</span>
-                  Méditation quotidienne
-                </h3>
-                <p class="text-indigo-700 text-sm">5 minutes de méditation matinale peuvent améliorer votre humeur de 15%.</p>
-              </div>
-
-              <div class="p-4 bg-teal-50 rounded-2xl">
-                <h3 class="font-semibold text-teal-800 mb-2 flex items-center">
-                  <span class="text-lg mr-2">🌱</span>
-                  Gratitude
-                </h3>
-                <p class="text-teal-700 text-sm">Notez 3 choses pour lesquelles vous êtes reconnaissant(e) chaque soir.</p>
-              </div>
-
-              <div class="p-4 bg-rose-50 rounded-2xl">
-                <h3 class="font-semibold text-rose-800 mb-2 flex items-center">
-                  <span class="text-lg mr-2">🎨</span>
-                  Activité créative
-                </h3>
-                <p class="text-rose-700 text-sm">Consacrez du temps à une passion créative pour stimuler votre bien-être.</p>
-              </div>
-
-              <div class="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl">
-                <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
-                  <span class="text-lg mr-2">💡</span>
-                  Conseil du jour
-                </h3>
-                <p class="text-gray-600 text-sm">Votre énergie est élevée ! Profitez-en pour tacler les tâches importantes.</p>
-              </div>
+              <span v-else-if="isMood('neutral') || isEnergy('neutral')">
+                Prends le temps de t'écouter et de faire une activité qui te fait du bien. Un moment de calme ou une activité créative peuvent t'aider à maintenir ton équilibre.
+              </span>
+              <span v-else-if="isMood('good') || isEnergy('fit')">
+                Belle énergie ! Profite de ta motivation pour avancer sur tes projets ou partager un bon moment avec tes proches. Continue à prendre soin de toi.
+              </span>
+              <span v-else-if="isMood('great') || isEnergy('energetic')">
+                Tu es au top ! Lance-toi un défi, essaie une nouvelle activité ou partage ta bonne humeur autour de toi. Garde cette belle dynamique !
+              </span>
+              <span v-else>
+                Prends soin de toi et écoute tes besoins du moment.
+              </span>
             </div>
           </div>
         </div>
@@ -463,7 +337,7 @@ export default {
         }
         this.showMoodModal = false;
         toast.success('Données d\'humeur enregistrées ou modifiées avec succès !');
-        await this.refreshAllData?.();
+        await this.loadCurrentMoodData(); // <-- Rafraîchit la donnée dynamique après save
         this.$emit('data-updated');
       } catch (error) {
         console.error('[saveMoodData] Erreur lors de l\'enregistrement mood:', error);
@@ -482,12 +356,20 @@ export default {
       return formatDateForAPI(date);
     },
     getMoodEmoji(mood) {
-      const moodOption = this.moodOptions.find(option => option.value === mood);
+      if (!mood) return '😐';
+      const moodOption = this.moodOptions.find(option => option.value.toLowerCase() === mood.toLowerCase());
       return moodOption ? moodOption.emoji : '😐';
     },
     getEnergyEmoji(energy) {
-      const energyOption = this.energyOptions.find(option => option.value === energy);
+      if (!energy) return '😐';
+      const energyOption = this.energyOptions.find(option => option.value.toLowerCase() === energy.toLowerCase());
       return energyOption ? energyOption.emoji : '😐';
+    },
+    isMood(val) {
+      return this.currentMoodData && this.currentMoodData.mood && this.currentMoodData.mood.toLowerCase() === val;
+    },
+    isEnergy(val) {
+      return this.currentMoodData && this.currentMoodData.energy && this.currentMoodData.energy.toLowerCase() === val;
     },
     getMoodScore(mood) {
       const scores = { 'Awful': 2, 'Bad': 4, 'Neutral': 6, 'Good': 8, 'Great': 10 };
@@ -528,6 +410,26 @@ export default {
           'Energy Level:', this.selectedEnergy
       )
       this.$router.back()
+    },
+    getEtatActuelMessage(moodData) {
+      if (!moodData) return "Aucune donnée d'humeur aujourd'hui.";
+      const mood = moodData.mood ? moodData.mood.toLowerCase() : '';
+      const energy = moodData.energy ? moodData.energy.toLowerCase() : '';
+      if ((mood === 'great' || mood === 'good') && (energy === 'energetic' || energy === 'fit')) {
+        return "Tu es au top aujourd'hui ! Profite de cette belle énergie.";
+      } else if ((mood === 'bad' || mood === 'awful') && (energy === 'sick' || energy === 'tired')) {
+        return "Courage, demain sera un meilleur jour. Prends soin de toi.";
+      } else if (mood === 'neutral' && (energy === 'neutral' || energy === 'tired')) {
+        return "Journée calme, accorde-toi du repos et écoute tes besoins.";
+      } else if ((mood === 'good' || mood === 'great') && (energy === 'neutral' || energy === 'tired')) {
+        return "Bonne humeur, mais pense à recharger tes batteries.";
+      } else if ((mood === 'bad' || mood === 'awful') && (energy === 'fit' || energy === 'energetic')) {
+        return "L'énergie est là, mais le moral moins. Prends un moment pour toi ou fais une activité qui te plaît.";
+      } else if (mood === 'neutral' && (energy === 'fit' || energy === 'energetic')) {
+        return "Bonne énergie, profites-en pour avancer sur ce qui te motive !";
+      } else {
+        return "Prends soin de toi et profite de ta journée.";
+      }
     }
   },
   async mounted() {

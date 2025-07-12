@@ -52,12 +52,12 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </span>
-              <span v-else-if="validTodayActivities.length < 3 && totalCalories < 400">
+              <span v-else-if="validTodayActivities.length < objectifActivites && totalCalories < objectifCalories">
                 <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </span>
-              <span v-else-if="validTodayActivities.length >= 3 && totalCalories >= 400">
+              <span v-else-if="validTodayActivities.length >= objectifActivites && totalCalories >= objectifCalories">
                 <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
@@ -76,17 +76,17 @@
             <div v-if="validTodayActivities.length === 0" class="w-full">
               <p class="text-gray-700 text-2xl text-center leading-relaxed font-medium">Aucune activité enregistrée aujourd'hui.<br>Commencez par ajouter une activité pour atteindre vos objectifs !</p>
             </div>
-            <div v-else-if="validTodayActivities.length < 3 && totalCalories < 400" class="w-full">
-              <p class="text-gray-700 text-2xl text-center leading-relaxed font-medium">Vous avez effectué {{ validTodayActivities.length }} activité{{ validTodayActivities.length > 1 ? 's' : '' }}.<br>Continuez pour atteindre l'objectif de <b>3 activités</b> et <b>400 kcal</b> !</p>
+            <div v-else-if="validTodayActivities.length < objectifActivites && totalCalories < objectifCalories" class="w-full">
+              <p class="text-gray-700 text-2xl text-center leading-relaxed font-medium">Vous avez effectué {{ validTodayActivities.length }} activité{{ validTodayActivities.length > 1 ? 's' : '' }}.<br>Continuez pour atteindre l'objectif de <b>{{ objectifActivites }} activité{{ objectifActivites > 1 ? 's' : '' }}</b> et <b>{{ objectifCalories }} kcal</b> !</p>
             </div>
-            <div v-else-if="validTodayActivities.length >= 3 && totalCalories >= 400" class="w-full">
+            <div v-else-if="validTodayActivities.length >= objectifActivites && totalCalories >= objectifCalories" class="w-full">
               <p class="text-green-700 text-2xl text-center leading-relaxed font-semibold">Bravo ! Objectifs du jour atteints 🎉<br>{{ validTodayActivities.length }} activités, {{ totalCalories }} kcal brûlées.</p>
             </div>
-            <div v-else-if="validTodayActivities.length >= 3" class="w-full">
-              <p class="text-orange-700 text-2xl text-center leading-relaxed font-medium">Nombre d'activités atteint ({{ validTodayActivities.length }}),<br>essayez d'atteindre aussi <b>400 kcal</b> !</p>
+            <div v-else-if="validTodayActivities.length >= objectifActivites" class="w-full">
+              <p class="text-orange-700 text-2xl text-center leading-relaxed font-medium">Nombre d'activités atteint ({{ validTodayActivities.length }}),<br>essayez d'atteindre aussi <b>{{ objectifCalories }} kcal</b> !</p>
             </div>
             <div v-else class="w-full">
-              <p class="text-orange-700 text-2xl text-center leading-relaxed font-medium">Objectif calories atteint ({{ totalCalories }} kcal),<br>essayez d'atteindre aussi <b>3 activités</b> !</p>
+              <p class="text-orange-700 text-2xl text-center leading-relaxed font-medium">Objectif calories atteint ({{ totalCalories }} kcal),<br>essayez d'atteindre aussi <b>{{ objectifActivites }} activité{{ objectifActivites > 1 ? 's' : '' }}</b> !</p>
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@
                 <span class="text-lg font-bold text-purple-600">{{ totalCalories !== null ? totalCalories : 0 }} kcal</span>
               </div>
               <div class="w-full bg-purple-200 rounded-full h-2">
-                <div class="bg-purple-500 h-2 rounded-full" :style="{ width: Math.min((totalCalories || 0) / 400 * 100, 100) + '%' }"></div>
+                <div class="bg-purple-500 h-2 rounded-full" :style="{ width: Math.min((totalCalories || 0) / objectifCalories * 100, 100) + '%' }"></div>
               </div>
             </div>
 
@@ -146,7 +146,7 @@
           <div class="mt-6 text-center">
             <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full text-sm font-medium">
               <span class="mr-2">🎯</span>
-              Objectif : 3 activités/jour
+              Objectif : {{ objectifActivites }} activité{{ objectifActivites > 1 ? 's' : '' }} / {{ objectifCalories }} kcal
             </div>
           </div>
         </div>
@@ -321,7 +321,9 @@ export default {
       todayActivities: [],
       isSaving: false,
       isLoading: true, // loader pour la liste
-      isEditMode: false // Nouvelle propriété pour gérer le mode édition
+      isEditMode: false, // Nouvelle propriété pour gérer le mode édition
+      objectifActivites: 3, // valeur par défaut, sera calculée dynamiquement
+      objectifCalories: 400, // valeur par défaut, sera calculée dynamiquement
     }
   },
   computed: {
@@ -371,23 +373,23 @@ export default {
     }
   },
   watch: {
-    // Surveiller les changements de prop selectedDate
     selectedDate: {
       handler(newDate) {
         if (newDate) {
           this.currentDate = newDate;
+          this.setDailyObjectives();
           this.loadTodayActivities();
         }
       },
       immediate: false
     },
-    // Surveiller les changements de route (query parameters)
     '$route.query.date': {
       handler(newDateStr) {
         if (newDateStr) {
           const d = new Date(newDateStr + 'T00:00:00');
           if (!isNaN(d.getTime())) {
             this.currentDate = d;
+            this.setDailyObjectives();
             this.loadTodayActivities();
           }
         }
@@ -397,10 +399,8 @@ export default {
   },
   async mounted() {
     this.isLoading = true;
-    
     // Initialiser la date courante avec la prop ou la date par défaut
     this.currentDate = this.selectedDate || new Date();
-    
     // Gérer la date depuis les query parameters
     const dateStr = this.$route?.query?.date;
     if (dateStr) {
@@ -409,7 +409,8 @@ export default {
         this.currentDate = d;
       }
     }
-    
+    // Appeler setDailyObjectives après avoir fixé la date courante
+    this.setDailyObjectives();
     await this.loadTodayActivities();
     this.isLoading = false;
     document.addEventListener('keydown', this.handleEscapeKey);
@@ -497,6 +498,28 @@ export default {
       this.activityData = { ...activity, calories: activity.calories || 0 };
       this.isEditMode = true;
       this.showActivityModal = true;
+    },
+    setDailyObjectives() {
+      // Génère un hash simple à partir de la date (YYYY-MM-DD)
+      let date = this.currentDate;
+      if (!(date instanceof Date)) {
+        date = new Date(date);
+      }
+      // Corrige le cas où la date serait invalide
+      if (isNaN(date.getTime())) {
+        date = new Date();
+      }
+      // Toujours UTC pour éviter les décalages
+      const dateStr = date.getUTCFullYear() + '-' + String(date.getUTCMonth()+1).padStart(2,'0') + '-' + String(date.getUTCDate()).padStart(2,'0');
+      let hash = 0;
+      for (let i = 0; i < dateStr.length; i++) {
+        hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
+        hash |= 0; // Convert to 32bit int
+      }
+      // Objectif activités : 1 à 5
+      this.objectifActivites = (Math.abs(hash) % 5) + 1;
+      // Objectif calories : 100 à 5000 par pas de 100
+      this.objectifCalories = ((Math.abs(hash * 31) % 50) * 100) + 100;
     }
   },
   beforeUnmount() {

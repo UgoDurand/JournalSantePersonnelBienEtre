@@ -96,7 +96,7 @@
 
         <div class="border-t border-gray-200 pt-2">
           <button
-            @click="logout"
+            @click="showLogoutModal = true"
             :disabled="isLoggingOut"
             class="w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50 flex items-center"
           >
@@ -226,6 +226,33 @@
         </div>
       </div>
     </div>
+
+    <!-- MODALE DE CONFIRMATION DE DÉCONNEXION -->
+    <div v-if="showLogoutModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative animate-fade-in">
+        <div class="flex flex-col items-center">
+          <div class="w-14 h-14 flex items-center justify-center rounded-full bg-red-100 mb-4">
+            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Se déconnecter&nbsp;?</h3>
+          <p class="text-gray-600 text-center mb-6">Es-tu sûr de vouloir te déconnecter&nbsp;?<br/>Tu devras te reconnecter pour accéder à ton espace.</p>
+          <div class="flex gap-3 w-full justify-center">
+            <button @click="showLogoutModal = false" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium transition">Annuler</button>
+            <button @click="confirmLogout" :disabled="isLoggingOut" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-medium transition flex items-center gap-2 disabled:opacity-60">
+              <svg v-if="isLoggingOut" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              <span>{{ isLoggingOut ? 'Déconnexion...' : 'Se déconnecter' }}</span>
+            </button>
+          </div>
+        </div>
+        <button @click="showLogoutModal = false" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -248,7 +275,8 @@ export default {
       dropdownPosition: 'bottom',
       screenWidth: window.innerWidth,
       dropdownHorizontalPos: 'right-0',
-      showUserInfoModal: false
+      showUserInfoModal: false,
+      showLogoutModal: false
     }
   },
   computed: {
@@ -335,20 +363,18 @@ export default {
       }
     },
 
-    async logout() {
-      if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        this.isLoggingOut = true
-        try {
-          await authService.logout()
-          this.$router.push('/login')
-        } catch (error) {
-          console.error('Erreur lors de la déconnexion:', error)
-          // Forcer la déconnexion même en cas d'erreur
-          this.$router.push('/login')
-        } finally {
-          this.isLoggingOut = false
-          this.closeDropdown()
-        }
+    async confirmLogout() {
+      this.isLoggingOut = true
+      try {
+        await authService.logout()
+        this.$router.push('/login')
+      } catch (error) {
+        console.error('Erreur lors de la déconnexion:', error)
+        this.$router.push('/login')
+      } finally {
+        this.isLoggingOut = false
+        this.showLogoutModal = false
+        this.closeDropdown()
       }
     },
 

@@ -2,11 +2,12 @@
   <div class="flex flex-col md:flex-row h-screen overflow-hidden">
     <!-- Navbar visible seulement si l'utilisateur est connecté -->
     <Navbar 
+      ref="navbar"
       v-if="$route.name !== 'Login' && $route.name !== 'OAuthCallback' && isAuthenticated" 
       @date-changed="onDateChanged"
     />
     <main class="flex-1 overflow-auto">
-      <router-view :date-info="dateInfo" @date-changed="onDateChanged" />
+      <router-view :date-info="dateInfo" @date-changed="onDateChanged" @data-updated="handleDataUpdated" />
     </main>
   </div>
 </template>
@@ -76,6 +77,15 @@ export default {
 
     onDateChanged(dateInfo) {
       this.dateInfo = dateInfo
+    },
+
+    async handleDataUpdated() {
+      // On force la Navbar à recharger ses données et à réémettre date-changed
+      const navbar = this.$refs.navbar;
+      if (navbar && typeof navbar.loadWeekData === 'function') {
+        await navbar.loadWeekData();
+        navbar.emitDateChange();
+      }
     }
   }
 }
