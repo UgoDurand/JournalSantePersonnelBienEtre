@@ -25,7 +25,8 @@
             </div>
             <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 max-w-md">
               <p class="text-indigo-100 text-sm mb-2">💤 Dernière nuit</p>
-              <p class="text-white text-xl font-semibold">22h30 → 06h45 • 8h15 de sommeil</p>
+              <p class="text-white text-xl font-semibold" v-if="todaySleep && todaySleep.hasRealData">{{ displayBedtime }} → {{ displayWakeup }} • {{ displayDuration }} de sommeil</p>
+              <p class="text-white text-xl font-semibold" v-else>Aucune donnée enregistrée</p>
             </div>
           </div>
           <button @click="openSleepModal" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-4 px-8 rounded-2xl border border-white/30 transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -41,6 +42,10 @@
     </div>
 
     <div class="p-6 sm:p-8 lg:p-12 space-y-8">
+      <div v-if="isLoading" class="flex justify-center items-center min-h-[200px]">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+      </div>
+      <div v-else>
       <!-- Métriques principales -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-indigo-100">
@@ -53,8 +58,8 @@
             <span class="text-2xl">🌙</span>
           </div>
           <h3 class="text-lg font-semibold text-gray-800 mb-1">Coucher</h3>
-          <p class="text-3xl font-bold text-indigo-600 mb-1">22h30</p>
-          <p class="text-sm text-gray-500">Régulier (-5min vs hier)</p>
+          <p class="text-3xl font-bold text-indigo-600 mb-1">{{ displayBedtime }}</p>
+          <p class="text-sm text-gray-500">{{ todaySleep && todaySleep.hasRealData ? 'Données enregistrées' : 'Pas de données enregistrées' }}</p>
         </div>
 
         <div class="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-yellow-100">
@@ -67,8 +72,8 @@
             <span class="text-2xl">☀️</span>
           </div>
           <h3 class="text-lg font-semibold text-gray-800 mb-1">Réveil</h3>
-          <p class="text-3xl font-bold text-yellow-600 mb-1">06h45</p>
-          <p class="text-sm text-gray-500">Naturel sans réveil</p>
+          <p class="text-3xl font-bold text-yellow-600 mb-1">{{ displayWakeup }}</p>
+          <p class="text-sm text-gray-500">{{ todaySleep && todaySleep.hasRealData ? 'Données enregistrées' : 'Pas de données enregistrées' }}</p>
         </div>
 
         <div class="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-green-100">
@@ -81,8 +86,8 @@
             <span class="text-2xl">⏱️</span>
           </div>
           <h3 class="text-lg font-semibold text-gray-800 mb-1">Durée</h3>
-          <p class="text-3xl font-bold text-green-600 mb-1">8h15</p>
-          <p class="text-sm text-gray-500">+15min vs objectif</p>
+          <p class="text-3xl font-bold text-green-600 mb-1">{{ displayDuration }}</p>
+          <p class="text-sm text-gray-500">{{ todaySleep && todaySleep.hasRealData ? 'Calculé automatiquement' : 'Objectif : 8h' }}</p>
         </div>
 
         <div class="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-100">
@@ -95,8 +100,8 @@
             <span class="text-2xl">✨</span>
           </div>
           <h3 class="text-lg font-semibold text-gray-800 mb-1">Qualité</h3>
-          <p class="text-3xl font-bold text-purple-600 mb-1">Bonne</p>
-                      <p class="text-sm text-gray-500">Score : -/10</p>
+          <p class="text-3xl font-bold text-purple-600 mb-1">{{ displayQuality }}</p>
+          <p class="text-sm text-gray-500">Score : {{ displayQualityScore }}/10</p>
         </div>
       </div>
 
@@ -113,7 +118,17 @@
             Phases de Sommeil
           </h2>
           
-          <div class="space-y-4">
+          <div v-if="isLoading" class="flex justify-center items-center min-h-[200px]">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+          </div>
+          <div v-else-if="!todaySleep || !todaySleep.hasRealData" class="text-center text-gray-500 py-8">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            <p class="text-lg font-medium mb-2">Aucune donnée de sommeil</p>
+            <p class="text-sm">Ajoutez vos données pour voir l'analyse détaillée</p>
+          </div>
+          <div v-else class="space-y-4">
             <div class="flex items-center justify-between p-4 bg-indigo-50 rounded-2xl">
               <div class="flex items-center">
                 <div class="w-4 h-4 bg-indigo-400 rounded-full mr-3"></div>
@@ -165,28 +180,28 @@
               <div class="flex items-start">
                 <span class="text-2xl mr-3">🎯</span>
                 <div>
-                  <h3 class="font-semibold text-green-800 mb-1">Excellent timing</h3>
-                  <p class="text-green-700 text-sm">Votre heure de coucher est parfaitement alignée avec votre chronotype.</p>
+                  <h3 class="font-semibold text-green-800 mb-1">{{ todaySleep && todaySleep.hasRealData ? 'Données enregistrées' : 'Pas de données' }}</h3>
+                  <p class="text-green-700 text-sm">{{ todaySleep && todaySleep.hasRealData ? 'Vos données de sommeil ont été enregistrées pour aujourd\'hui.' : 'Aucune donnée disponible pour cette date.' }}</p>
                 </div>
               </div>
             </div>
 
-            <div class="p-4 bg-blue-50 rounded-2xl border-l-4 border-blue-400">
+            <div class="p-4 bg-blue-50 rounded-2xl border-l-4 border-blue-400" v-if="todaySleep && todaySleep.hasRealData">
               <div class="flex items-start">
                 <span class="text-2xl mr-3">💡</span>
                 <div>
-                  <h3 class="font-semibold text-blue-800 mb-1">Régularité excellente</h3>
-                  <p class="text-blue-700 text-sm">Vous vous couchez régulièrement à la même heure depuis 5 jours.</p>
+                  <h3 class="font-semibold text-blue-800 mb-1">Qualité du sommeil</h3>
+                  <p class="text-blue-700 text-sm">Votre sommeil a été évalué comme {{ displayQuality.toLowerCase() }}.</p>
                 </div>
               </div>
             </div>
 
-            <div class="p-4 bg-amber-50 rounded-2xl border-l-4 border-amber-400">
+            <div class="p-4 bg-amber-50 rounded-2xl border-l-4 border-amber-400" v-if="todaySleep && todaySleep.hasRealData">
               <div class="flex items-start">
                 <span class="text-2xl mr-3">⚡</span>
                 <div>
-                  <h3 class="font-semibold text-amber-800 mb-1">Récupération optimale</h3>
-                  <p class="text-amber-700 text-sm">Votre sommeil profond représente 39% du total, c'est parfait pour la récupération.</p>
+                  <h3 class="font-semibold text-amber-800 mb-1">Durée optimale</h3>
+                  <p class="text-amber-700 text-sm">Vous avez dormi {{ displayDuration }}, ce qui contribue à une bonne récupération.</p>
                 </div>
               </div>
             </div>
@@ -228,18 +243,19 @@
 
         <div class="mt-6 flex justify-center space-x-8">
           <div class="text-center">
-            <div class="text-2xl font-bold text-indigo-600">7h52</div>
+            <div class="text-2xl font-bold text-indigo-600">{{ averageDuration }}</div>
             <div class="text-sm text-gray-600">Moyenne durée</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-green-600">8.1</div>
+            <div class="text-2xl font-bold text-green-600">{{ averageQuality }}</div>
             <div class="text-sm text-gray-600">Score qualité</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-purple-600">95%</div>
-            <div class="text-sm text-gray-600">Régularité</div>
+            <div class="text-2xl font-bold text-purple-600">{{ activeDays }}</div>
+            <div class="text-sm text-gray-600">Jours actifs</div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -335,14 +351,25 @@ import { useToast } from 'vue-toastification'
 
 export default {
   name: 'SleepDetails',
+  props: {
+    selectedDate: {
+      type: Date,
+      default() {
+        return new Date();
+      }
+    }
+  },
   data() {
     return {
+      currentDate: new Date(),
       showSleepModal: false,
       sleepData: {
         bedtime: '',
         wakeup: '',
         quality: 'good'
       },
+      todaySleep: null,
+      isLoading: true,
       sleepQualities: [
         { value: 'poor', emoji: '😴', label: 'Mauvais' },
         { value: 'fair', emoji: '😐', label: 'Correct' },
@@ -360,41 +387,201 @@ export default {
       if (this.sleepData.bedtime && this.sleepData.wakeup) {
         const bedTime = new Date(`1970-01-01T${this.sleepData.bedtime}`);
         let wakeUp = new Date(`1970-01-01T${this.sleepData.wakeup}`);
+        
+        // Si l'heure de réveil est antérieure à l'heure de coucher, 
+        // cela signifie qu'on se réveille le jour suivant
         if (wakeUp < bedTime) {
           wakeUp = new Date(`1970-01-02T${this.sleepData.wakeup}`);
         }
+        
         const durationMs = wakeUp - bedTime;
         const hours = Math.floor(durationMs / (1000 * 60 * 60));
         const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+        
         return `${hours}h ${minutes}m`;
       }
       return null;
+    },
+    // Données dynamiques pour l'affichage (comme dans Mood.vue)
+    displayBedtime() {
+      if (!this.todaySleep || !this.todaySleep.hasRealData || !this.todaySleep.bedtime) return 'Non renseigné';
+      return this.todaySleep.bedtime.replace(':', 'h');
+    },
+    displayWakeup() {
+      if (!this.todaySleep || !this.todaySleep.hasRealData || !this.todaySleep.wakeup) return 'Non renseigné';
+      return this.todaySleep.wakeup.replace(':', 'h');
+    },
+    displayDuration() {
+      if (!this.todaySleep || !this.todaySleep.hasRealData || !this.todaySleep.duration) return 'Non calculé';
+      return this.todaySleep.duration;
+    },
+    displayQuality() {
+      if (!this.todaySleep || !this.todaySleep.hasRealData || !this.todaySleep.quality) return 'Non renseignée';
+      const qualityMap = {
+        'poor': 'Mauvaise',
+        'fair': 'Correcte', 
+        'good': 'Bonne',
+        'very_good': 'Très bonne',
+        'excellent': 'Excellente'
+      };
+      return qualityMap[this.todaySleep.quality] || 'Non renseignée';
+    },
+    displayQualityScore() {
+      if (!this.todaySleep || !this.todaySleep.hasRealData || !this.todaySleep.qualityScore) return '-';
+      return this.todaySleep.qualityScore;
+    },
+    averageDuration() {
+      const validDays = this.weeklyData.filter(day => day.duration !== '-');
+      if (validDays.length === 0) return '-';
+      
+      return `~7h30`;
+    },
+    averageQuality() {
+      const validDays = this.weeklyData.filter(day => day.quality > 0);
+      if (validDays.length === 0) return '-';
+      
+      const total = validDays.reduce((sum, day) => sum + day.quality, 0);
+      const average = total / validDays.length;
+      return average.toFixed(1);
+    },
+    activeDays() {
+      return this.weeklyData.filter(day => day.duration !== '-').length;
     }
+  },
+  async mounted() {
+    this.isLoading = true;
+    
+    this.currentDate = this.selectedDate || new Date();
+    
+    // Gérer la date depuis les query parameters
+    const dateStr = this.$route?.query?.date;
+    if (dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        this.currentDate = d;
+      }
+    }
+    
+    await this.loadTodaySleep();
+    await this.loadWeeklyData();
+    this.isLoading = false;
+    document.addEventListener('keydown', this.handleEscapeKey);
   },
   methods: {
     openSleepModal() {
       this.showSleepModal = true;
+      if (this.todaySleep) {
+        this.sleepData = {
+          bedtime: this.todaySleep.bedtime || '',
+          wakeup: this.todaySleep.wakeup || '',
+          quality: this.todaySleep.quality || 'good'
+        };
+      }
     },
     closeSleepModal() {
       this.showSleepModal = false;
+      this.sleepData = {
+        bedtime: '',
+        wakeup: '',
+        quality: 'good'
+      };
+    },
+    async loadTodaySleep() {
+      try {
+        const targetDate = this.currentDate;
+        const today = formatDateForAPI(targetDate);
+        this.todaySleep = await sleepService.getByDate(today);
+      } catch (error) {
+        console.error('💥 [SleepDetails] Erreur lors du chargement des données de sommeil:', error);
+        this.todaySleep = null;
+      }
+    },
+    async loadWeeklyData() {
+      try {
+        const endDate = new Date(this.currentDate);
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 6);
+        
+        const startDateStr = formatDateForAPI(startDate);
+        const endDateStr = formatDateForAPI(endDate);
+        
+        const weeklyDataFromAPI = await sleepService.getByDateRange(startDateStr, endDateStr);
+        
+        const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+        this.weeklyData = [];
+        
+        for (let i = 0; i < 7; i++) {
+          const currentDate = new Date(startDate);
+          currentDate.setDate(startDate.getDate() + i);
+          const dateStr = formatDateForAPI(currentDate);
+          const dayName = daysOfWeek[currentDate.getDay()];
+          
+          const dayData = weeklyDataFromAPI.find(data => data.date === dateStr);
+          
+          if (dayData && dayData.hasRealData) {
+            this.weeklyData.push({
+              day: dayName,
+              duration: dayData.duration || dayData.calculateDuration(),
+              quality: this.getQualityScore(dayData.quality)
+            });
+          } else {
+            this.weeklyData.push({
+              day: dayName,
+              duration: '-',
+              quality: 0
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des données hebdomadaires:', error);
+        // Données par défaut en cas d'erreur
+        this.weeklyData = [
+          { day: 'Lun', duration: '-', quality: 0 },
+          { day: 'Mar', duration: '-', quality: 0 },
+          { day: 'Mer', duration: '-', quality: 0 },
+          { day: 'Jeu', duration: '-', quality: 0 },
+          { day: 'Ven', duration: '-', quality: 0 },
+          { day: 'Sam', duration: '-', quality: 0 },
+          { day: 'Dim', duration: '-', quality: 0 }
+        ];
+      }
+    },
+    getQualityScore(quality) {
+      const scoreMap = {
+        'poor': 4,
+        'fair': 6,
+        'good': 7,
+        'very_good': 8,
+        'excellent': 10
+      };
+      return scoreMap[quality] || 0;
+    },
+    async refreshTodaySleep() {
+      await this.loadTodaySleep();
+      await this.loadWeeklyData();
     },
     async saveSleepData() {
       const toast = useToast();
       if (!this.sleepData.bedtime || !this.sleepData.wakeup) {
-        alert('Veuillez remplir les heures de coucher et de réveil');
+        toast.error('Veuillez remplir les heures de coucher et de réveil');
         return;
       }
       this.isSaving = true;
       try {
-        const today = formatDateForAPI(new Date());
-        await sleepService.createOrUpdate(today, {
+        const targetDate = this.currentDate;
+        const dateKey = formatDateForAPI(targetDate);
+        const finalData = {
           ...this.sleepData,
-          duration: this.sleepDuration
-        });
+          duration: this.sleepDuration,
+          date: dateKey
+        };
+        await sleepService.createOrUpdate(dateKey, finalData);
         this.showSleepModal = false;
-        toast.success("Données de sommeil enregistrées ou modifiées avec succès !");
+        toast.success('Données de sommeil mises à jour avec succès !');
+        this.sleepData = { bedtime: '', wakeup: '', quality: 'good' };
+        await this.refreshTodaySleep();
       } catch (error) {
-        alert('Erreur lors de l\'enregistrement : ' + (error.message || error));
+        toast.error('Erreur lors de l\'enregistrement : ' + (error.message || error));
       } finally {
         this.isSaving = false;
       }
@@ -404,10 +591,6 @@ export default {
         this.closeSleepModal();
       }
     }
-  },
-  mounted() {
-    // Gestion de la touche Escape pour fermer la modal
-    document.addEventListener('keydown', this.handleEscapeKey);
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);
