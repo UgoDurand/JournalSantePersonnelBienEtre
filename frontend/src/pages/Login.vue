@@ -145,8 +145,8 @@ export default {
     return {
       isLoading: false,
       error: null,
-      backendStatus: 'unknown', // 'unknown', 'checking', 'available', 'unavailable'
-      hasAttemptedLogin: false // Pour éviter les clics multiples
+      backendStatus: 'unknown',
+      hasAttemptedLogin: false
     }
   },
   async mounted() {

@@ -788,22 +788,19 @@ export default {
   },
   data() {
     return {
-      displayState: 'TODAY_NO_DATA', // 'TODAY_NO_DATA', 'PAST_NO_DATA', 'WITH_DATA'
-      currentData: {}, // Données actuelles de la date sélectionnée
+      displayState: 'TODAY_NO_DATA',
+      currentData: {},
       selectedDate: new Date(),
       formattedSelectedDate: '',
-      // Informations individuelles pour chaque type de donnée
       individualData: {
         sleep: { hasData: false, formattedData: null },
         diet: { hasData: false, formattedData: null },
         activity: { hasData: false, formattedData: null },
         mood: { hasData: false, formattedData: null }
       },
-      // États pour la gestion des données
       isLoading: false,
       isSaving: false,
       error: null,
-      // Erreurs de validation pour chaque modale
       sleepErrors: {},
       dietErrors: {},
       activityErrors: {},
@@ -812,7 +809,6 @@ export default {
       showDietModal: false,
       showActivityModal: false,
       showMoodModal: false,
-      // Données pré-remplies (pour modification)
       isEditMode: false,
       sleepData: {
         bedtime: '',
@@ -894,17 +890,12 @@ export default {
       if (this.sleepData.bedtime && this.sleepData.wakeup) {
         const bedTime = new Date(`1970-01-01T${this.sleepData.bedtime}`);
         let wakeUp = new Date(`1970-01-01T${this.sleepData.wakeup}`);
-        
-        // Si l'heure de réveil est antérieure à l'heure de coucher, 
-        // cela signifie qu'on se réveille le jour suivant
         if (wakeUp < bedTime) {
           wakeUp = new Date(`1970-01-02T${this.sleepData.wakeup}`);
         }
-        
         const durationMs = wakeUp - bedTime;
         const hours = Math.floor(durationMs / (1000 * 60 * 60));
         const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-        
         return `${hours}h ${minutes}m`;
       }
       return null;
@@ -912,8 +903,7 @@ export default {
     estimatedCalories() {
       if (this.activityData.duration && this.activityData.intensity) {
         const duration = parseInt(this.activityData.duration);
-        let caloriesPerMinute = 5; // Base pour intensité modérée
-        
+        let caloriesPerMinute = 5;
         switch (this.activityData.intensity) {
           case 'low':
             caloriesPerMinute = 3;
@@ -925,7 +915,6 @@ export default {
             caloriesPerMinute = 8;
             break;
         }
-        
         return Math.round(duration * caloriesPerMinute);
       }
       return null;
@@ -935,7 +924,6 @@ export default {
         const proteinCals = parseFloat(this.dietData.protein) * 4;
         const carbsCals = parseFloat(this.dietData.carbs) * 4;
         const fatsCals = parseFloat(this.dietData.fats) * 9;
-        
         return Math.round(proteinCals + carbsCals + fatsCals);
       }
       return null;
@@ -949,17 +937,12 @@ export default {
     async loadDataForModals() {
       console.warn('⚠️ [HomePage] loadDataForModals() appelée alors que les données devraient déjà être disponibles via Navbar')
       console.warn('⚠️ Cela indique une requête dupliquée - vérifiez le flux de données')
-      
       try {
         this.isLoading = true
         this.error = null
-        
         const dateKey = this.formatDateForAPI(this.selectedDate)
         const allData = await dataService.getAllDataForDate(dateKey)
-        
-        // Stocker les données pour les modales
         this.storeDataForModals(allData)
-        
       } catch (error) {
         console.error('Erreur lors du chargement des données pour les modales:', error)
         this.error = {
@@ -985,7 +968,6 @@ export default {
      * Stocker les données pour pré-remplir les modales
      */
     storeDataForModals(allData) {
-      // Stocker les données de sommeil
       if (allData.sleep && allData.sleep.hasRealData) {
         this.sleepData = {
           bedtime: allData.sleep.bedtime || '',
@@ -993,8 +975,6 @@ export default {
           quality: allData.sleep.quality || 'good'
         }
       }
-      
-      // Stocker les données d'alimentation
       if (allData.diet && allData.diet.hasRealData) {
         this.dietData = {
           breakfast: allData.diet.breakfast || '',
@@ -1008,8 +988,6 @@ export default {
           fats: allData.diet.fats || ''
         }
       }
-      
-      // Stocker les données d'activité (première activité de la journée)
       if (allData.activity && allData.activity.length > 0) {
         const firstActivity = allData.activity[0]
         this.activityData = {
@@ -1020,8 +998,6 @@ export default {
           calories: firstActivity.calories || ''
         }
       }
-      
-      // Stocker les données d'humeur
       if (allData.mood && allData.mood.hasRealData) {
         this.moodData = {
           mood: allData.mood.mood || 'neutral',
@@ -1202,79 +1178,36 @@ export default {
     },
     
     validateDietData() {
-      console.log('🔍 [validateDietData] Début de la validation des données d\'alimentation')
-      console.log('🔍 [validateDietData] Données à valider:', this.dietData)
-      
       const errors = {}
-      
-      // VALIDATION OBLIGATOIRE DES DONNÉES NUTRITIONNELLES
-      
-      // Calories obligatoires
       if (!this.dietData.calories || parseFloat(this.dietData.calories) <= 0) {
         errors.calories = 'Les calories sont obligatoires et doivent être supérieures à 0'
-        console.log('❌ [validateDietData] Erreur calories:', errors.calories)
       } else if (parseFloat(this.dietData.calories) < 500) {
         errors.calories = 'Les calories semblent trop faibles (minimum 500)'
-        console.log('❌ [validateDietData] Erreur calories:', errors.calories)
       } else if (parseFloat(this.dietData.calories) > 5000) {
         errors.calories = 'Les calories semblent trop élevées (maximum 5000)'
-        console.log('❌ [validateDietData] Erreur calories:', errors.calories)
       }
-      
-      // Protéines obligatoires
       if (!this.dietData.protein || parseFloat(this.dietData.protein) <= 0) {
         errors.protein = 'Les protéines sont obligatoires et doivent être supérieures à 0'
-        console.log('❌ [validateDietData] Erreur protein:', errors.protein)
       } else if (parseFloat(this.dietData.protein) < 10) {
         errors.protein = 'Les protéines semblent trop faibles (minimum 10g)'
-        console.log('❌ [validateDietData] Erreur protein:', errors.protein)
       } else if (parseFloat(this.dietData.protein) > 300) {
         errors.protein = 'Les protéines semblent trop élevées (maximum 300g)'
-        console.log('❌ [validateDietData] Erreur protein:', errors.protein)
       }
-      
-      // Glucides obligatoires
       if (!this.dietData.carbs || parseFloat(this.dietData.carbs) <= 0) {
-        errors.carbs = 'Les glucides sont obligatoires et doivent être supérieurs à 0'
-        console.log('❌ [validateDietData] Erreur carbs:', errors.carbs)
+        errors.carbs = 'Les glucides sont obligatoires et doivent être supérieures à 0'
       } else if (parseFloat(this.dietData.carbs) < 20) {
         errors.carbs = 'Les glucides semblent trop faibles (minimum 20g)'
-        console.log('❌ [validateDietData] Erreur carbs:', errors.carbs)
       } else if (parseFloat(this.dietData.carbs) > 500) {
         errors.carbs = 'Les glucides semblent trop élevés (maximum 500g)'
-        console.log('❌ [validateDietData] Erreur carbs:', errors.carbs)
       }
-      
-      // Lipides obligatoires
       if (!this.dietData.fats || parseFloat(this.dietData.fats) <= 0) {
-        errors.fats = 'Les lipides sont obligatoires et doivent être supérieurs à 0'
-        console.log('❌ [validateDietData] Erreur fats:', errors.fats)
-      } else if (parseFloat(this.dietData.fats) < 10) {
-        errors.fats = 'Les lipides semblent trop faibles (minimum 10g)'
-        console.log('❌ [validateDietData] Erreur fats:', errors.fats)
+        errors.fats = 'Les lipides sont obligatoires et doivent être supérieures à 0'
+      } else if (parseFloat(this.dietData.fats) < 5) {
+        errors.fats = 'Les lipides semblent trop faibles (minimum 5g)'
       } else if (parseFloat(this.dietData.fats) > 200) {
         errors.fats = 'Les lipides semblent trop élevés (maximum 200g)'
-        console.log('❌ [validateDietData] Erreur fats:', errors.fats)
       }
-      
-      // Validation de l'eau
-      if (this.dietData.water < 0) {
-        errors.water = 'La quantité d\'eau ne peut pas être négative'
-        console.log('❌ [validateDietData] Erreur water:', errors.water)
-      }
-      if (this.dietData.water > 5000) {
-        errors.water = 'La quantité d\'eau semble trop élevée (maximum 5L)'
-        console.log('❌ [validateDietData] Erreur water:', errors.water)
-      }
-      
-      // Note : Les calories calculées sont affichées à titre informatif seulement
-      // Pas de validation stricte car les sources de données peuvent varier
-      
-      console.log('🔍 [validateDietData] Erreurs trouvées:', errors)
-      this.dietErrors = errors
-      const isValid = Object.keys(errors).length === 0
-      console.log('🔍 [validateDietData] Validation finale:', isValid)
-      return isValid
+      return Object.keys(errors).length === 0 ? null : errors
     },
     
     validateActivityData() {
@@ -1355,31 +1288,25 @@ export default {
     },
     
     async saveSleepData() {
+      const toast = useToast();
       // Validation complète
       if (!this.validateSleepData()) {
         return // Les erreurs sont déjà stockées dans sleepErrors
       }
-      
       try {
         this.isSaving = true
         this.error = null
-        
         const dateKey = this.formatDateForAPI(this.selectedDate)
         const sleepDataToSave = {
           ...this.sleepData,
           duration: this.sleepDuration
         }
-        
         await dataService.saveSleepData(dateKey, sleepDataToSave)
-        
         this.showSleepModal = false
-        
-        // Afficher un message de succès
-        this.showSuccessMessage('Données de sommeil enregistrées avec succès !')
-        
+        // Afficher un toast de succès
+        toast.success("Données de sommeil enregistrées ou modifiées avec succès !")
         // Émettre l'événement pour que la navbar recharge les données
         this.$emit('data-updated')
-        
       } catch (error) {
         console.error('Erreur lors de la sauvegarde des données de sommeil:', error)
         this.error = {
@@ -1521,7 +1448,6 @@ export default {
       }
     },
     closeAllModalsOnMobile() {
-      // Vérifier si on est sur mobile (largeur < 768px pour correspondre à la breakpoint md de Tailwind)
       if (window.innerWidth < 768) {
         this.showSleepModal = false
         this.showDietModal = false
@@ -1534,7 +1460,6 @@ export default {
         event.preventDefault()
         event.stopPropagation()
       }
-      // Naviguer vers aujourd'hui en effaçant les paramètres de date
       this.$router.push({
         path: '/',
         query: { timeButton: 'today' }

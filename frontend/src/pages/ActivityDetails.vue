@@ -361,7 +361,7 @@ export default {
     estimatedCalories() {
       if (this.activityData.duration && this.activityData.intensity) {
         const duration = parseInt(this.activityData.duration);
-        let caloriesPerMinute = 5; // Base pour intensité modérée
+        let caloriesPerMinute = 5;
         switch (this.activityData.intensity) {
           case 'low': caloriesPerMinute = 3; break;
           case 'moderate': caloriesPerMinute = 5; break;

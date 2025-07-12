@@ -163,7 +163,6 @@ class AuthService {
    */
   async apiCall(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`
-    
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -171,20 +170,14 @@ class AuthService {
       },
       ...options
     }
-
     if (this.token) {
       config.headers['Authorization'] = `Bearer ${this.token}`
     }
-
     console.log('🌐 [AuthService] Appel API:', url, config)
-
     const response = await fetch(url, config)
-
     console.log('📡 [AuthService] Réponse statut:', response.status, response.statusText)
-
     if (!response.ok) {
       if (response.status === 401) {
-        // Ne pas déconnecter automatiquement en mode dev
         if (this.user && this.user.isDevMode) {
           console.warn('🚨 [DevMode] Erreur 401 ignorée en mode développement')
           throw new Error('Erreur 401 - Authentification requise (mode dev)')
@@ -192,16 +185,13 @@ class AuthService {
         this.logout()
         throw new Error('Session expirée, veuillez vous reconnecter')
       }
-      
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.message || `Erreur ${response.status}`)
     }
-
     const contentType = response.headers.get('content-type')
     if (contentType && contentType.includes('application/json')) {
       return await response.json()
     }
-    
     return await response.text()
   }
 
@@ -253,11 +243,7 @@ class AuthService {
    */
   enableDevMode() {
     console.warn('🚨 MODE DÉVELOPPEMENT ACTIVÉ - Ne pas utiliser en production!')
-    
-    // Token de développement (pas valide côté serveur)
     this.token = 'dev-token-' + Math.random().toString(36).substr(2, 9)
-    
-    // Utilisateur de développement
     this.user = {
       id: 1,
       email: 'dev@test.com',
@@ -265,14 +251,10 @@ class AuthService {
       authenticated: true,
       isDevMode: true
     }
-    
-    // Stocker en localStorage pour persistance
     localStorage.setItem('auth_token', this.token)
     localStorage.setItem('auth_user', JSON.stringify(this.user))
-    
     console.log('✅ Authentification de développement configurée')
     console.log('👤 Utilisateur:', this.user)
-    
     return true
   }
 

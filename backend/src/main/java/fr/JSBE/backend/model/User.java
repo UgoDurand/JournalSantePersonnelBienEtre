@@ -50,7 +50,6 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    // Constructeurs
     public User() {}
     
     public User(String name, String email, String imageUrl, AuthProvider provider, String providerId) {
@@ -59,7 +58,7 @@ public class User {
         this.imageUrl = imageUrl;
         this.provider = provider;
         this.providerId = providerId;
-        this.emailVerified = true; // Microsoft OAuth verifies emails
+        this.emailVerified = true;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -69,7 +68,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
     
-    // Getters et Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     

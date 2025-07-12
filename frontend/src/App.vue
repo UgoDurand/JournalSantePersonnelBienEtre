@@ -80,7 +80,6 @@ export default {
     },
 
     async handleDataUpdated() {
-      // On force la Navbar à recharger ses données et à réémettre date-changed
       const navbar = this.$refs.navbar;
       if (navbar && typeof navbar.loadWeekData === 'function') {
         await navbar.loadWeekData();

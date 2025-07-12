@@ -233,14 +233,14 @@ export default {
   },
   data() {
     return {
-      currentDate: new Date(), // Variable locale pour gérer la date
+      currentDate: new Date(),
       showMoodModal: false,
       moodData: {
         mood: 'Good',
         energy: 'Fit'
       },
       currentMoodData: null,
-      isLoading: true, // Ajouté pour le loader
+      isLoading: true,
       moodOptions: [
         { value: 'Awful',   emoji: '😢' },
         { value: 'Bad',     emoji: '😞' },
@@ -351,8 +351,6 @@ export default {
       await this.loadAllData?.();
     },
     formatDateForAPI(date) {
-      // Formater la date pour éviter les problèmes de timezone
-      // Note: Cette méthode et dépréciée, utilisez l'import depuis dateUtils à la place
       return formatDateForAPI(date);
     },
     getMoodEmoji(mood) {

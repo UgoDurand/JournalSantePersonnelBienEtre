@@ -11,9 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository pour les données d'alimentation
- */
 @Repository
 public interface DietRepository extends JpaRepository<Diet, Long> {
     

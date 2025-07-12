@@ -11,9 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository pour les données d'activité physique
- */
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
     

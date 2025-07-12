@@ -265,13 +265,11 @@ export default {
       selectedDate: new Date(),
       showDatePicker: false,
       currentWeek: [],
-      activeTimeButton: 'today', // 'today', 'yesterday', 'thisWeek', 'lastWeek'
-      // États pour la gestion des données
+      activeTimeButton: 'today',
       isLoading: false,
       error: null,
       dataByDate: {},
       currentData: null,
-      // Statistiques calculées
       streakCount: 0,
       dailyScore: 0,
       weeklyGoals: { completed: 0, total: 7 }
@@ -890,14 +888,12 @@ export default {
         isToday: this.isSelectedDateToday,
         dateKey: this.selectedDateKey,
         individualData: individualData,
-        // NOUVELLES DONNÉES COMPLÈTES pour éviter les requêtes dupliquées
         fullData: rawData ? {
           sleep: rawData.sleep,
           diet: rawData.diet,
           activity: rawData.activity,
           mood: rawData.mood
         } : null,
-        // Garde la compatibilité avec l'ancien format
         data: hasAnyData ? {
           sleep: individualData.sleep.formattedData,
           diet: individualData.diet.formattedData,
@@ -907,7 +903,6 @@ export default {
       })
     },
     openSettings() {
-      // TODO: Implémenter les paramètres
       console.log('Open settings')
     },
     handleOutsideClick(event) {

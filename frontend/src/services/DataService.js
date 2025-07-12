@@ -19,23 +19,20 @@ export class DataService {
   /**
    * ⚠️ REQUÊTES INDIVIDUELLES PAR DATE - À ÉVITER SI POSSIBLE
    * Utilisez plutôt getAllDataForDateRange() depuis Navbar pour éviter la duplication
-   * 
+   *
    * @param {string} date - Date au format YYYY-MM-DD
    * @returns {Promise<Object>}
    */
   async getAllDataForDate(date) {
     console.warn('⚠️ [DataService] getAllDataForDate() - Requêtes individuelles pour la date:', date)
     console.warn('💡 Conseil: Utilisez les données déjà chargées par getAllDataForDateRange() si possible')
-    
     try {
-      // Récupérer toutes les données en parallèle (4 requêtes séparées)
       const [sleepData, dietData, activityData, moodData] = await Promise.all([
         this.sleepService.getByDate(date),
         this.dietService.getByDate(date),
         this.activityService.getByDate(date),
         this.moodService.getByDate(date)
       ])
-
       return {
         date,
         sleep: sleepData,

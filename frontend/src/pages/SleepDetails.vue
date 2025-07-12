@@ -331,6 +331,7 @@
 <script>
 import { sleepService } from '../services/index.js'
 import { formatDateForAPI } from '../utils/dateUtils.js'
+import { useToast } from 'vue-toastification'
 
 export default {
   name: 'SleepDetails',
@@ -359,17 +360,12 @@ export default {
       if (this.sleepData.bedtime && this.sleepData.wakeup) {
         const bedTime = new Date(`1970-01-01T${this.sleepData.bedtime}`);
         let wakeUp = new Date(`1970-01-01T${this.sleepData.wakeup}`);
-        
-        // Si l'heure de réveil est antérieure à l'heure de coucher, 
-        // cela signifie qu'on se réveille le jour suivant
         if (wakeUp < bedTime) {
           wakeUp = new Date(`1970-01-02T${this.sleepData.wakeup}`);
         }
-        
         const durationMs = wakeUp - bedTime;
         const hours = Math.floor(durationMs / (1000 * 60 * 60));
         const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-        
         return `${hours}h ${minutes}m`;
       }
       return null;
@@ -383,6 +379,7 @@ export default {
       this.showSleepModal = false;
     },
     async saveSleepData() {
+      const toast = useToast();
       if (!this.sleepData.bedtime || !this.sleepData.wakeup) {
         alert('Veuillez remplir les heures de coucher et de réveil');
         return;
@@ -395,7 +392,7 @@ export default {
           duration: this.sleepDuration
         });
         this.showSleepModal = false;
-        alert('Données de sommeil mises à jour avec succès !');
+        toast.success("Données de sommeil enregistrées ou modifiées avec succès !");
       } catch (error) {
         alert('Erreur lors de l\'enregistrement : ' + (error.message || error));
       } finally {
